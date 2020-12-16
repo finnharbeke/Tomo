@@ -3,3 +3,4 @@ token.txt
 .classpath
 .project
 .settings/
+.DS_STORE
