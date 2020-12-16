@@ -1,54 +1,35 @@
-package motonari.Tomo;
+package motonari.Commands;
 
 import java.util.Random;
 
+import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-public class Commands extends ListenerAdapter {
+public class TomoListener extends ListenerAdapter {
 	public void onMessageReceived(MessageReceivedEvent event) {
 		Message msg = event.getMessage();
 		String raw = msg.getContentRaw();
 		if (!raw.startsWith(Tomo.prefix)) return;
 		raw = raw.substring(Tomo.prefix.length());
 		String[] args = raw.split("\\s+");
-		if (raw.equals("ping")) { // PING
-			ping(event.getChannel());
-		} else if (args[0].equals("8ball")) { // 8-BALL
-			eight(event.getChannel(), args);
-		} else if (raw.equals("info")) {
-			info(event);
-		} else if (args[0].equals("med")) {
-			minEditDistance(event.getChannel(), args);
-		}
-	}
-
-	private static void minEditDistance(MessageChannel c, String[] args) {
-		String A = args[1], B = args[2];
-		int[][] DP = new int[A.length()+1][B.length()+1];
-		for (int i = 0; i <= A.length(); i++) DP[i][0] = i;
-		for (int j = 0; j <= B.length(); j++) DP[0][j] = j;
-		for (int i = 1; i <= A.length(); i++) {
-			for (int j = 1; j <= B.length(); j++) {
-				DP[i][j] = Math.min(DP[i-1][j-1] + (A.charAt(i-1) == B.charAt(j-1) ? 0 : 1), Math.min(DP[i-1][j] + 1, DP[i][j-1] + 1));
+		//System.out.println(String.join(" ", args));
+		if (args.length == 0) return;
+		if (args[0].equals("help")) { // HELP
+			if (args.length == 1) {
+				// main help
+			} else if (args.length == 2) {
+				if (MinEditDistance.aliases.contains(args[1])) {
+					MinEditDistance.help(event.getChannel(), args);
+				}
 			}
+		} else if (MinEditDistance.aliases.contains(args[0])) {
+			MinEditDistance.run(event, args);
 		}
-		String table = "```";
-		for (int i = -1; i <= A.length(); i++) {
-			for (int j = -1; j <= B.length(); j++) {
-				if (i == -1) table += j <= 0 ? "-" : B.substring(j-1, j);
-				else if (j == -1) table += i <= 0 ? "-" : A.substring(i-1, i);
-				else table += DP[i][j];
-				table += " ";
-			}
-			table += "\n";
-		}
-		table += "```\n";
-		c.sendMessage(table + "Minimum Edit Distance between `" + A + "` and `" + B + "` is " + DP[A.length()][B.length()]).queue();
-
 	}
 
 	private static void info(MessageReceivedEvent e) {
