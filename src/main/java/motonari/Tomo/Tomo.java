@@ -12,14 +12,14 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 
 public class Tomo {
-	public static JDA jda;
 	public static String prefix = "&";
+	public static int msgLim = 2000;
 	
     public static void main( String[] args ) throws LoginException, FileNotFoundException {
     	Scanner s = new Scanner(new File("token.txt"));
     	String token = s.next();
     	s.close();
-    	jda = JDABuilder.createDefault(token).build();
+    	JDA jda = JDABuilder.createDefault(token).build();
     	jda.getPresence().setActivity(Activity.watching("Ueli's Lectures"));
     	jda.addEventListener(new TomoListener());
     }

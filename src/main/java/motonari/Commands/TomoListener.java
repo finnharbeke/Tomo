@@ -23,12 +23,26 @@ public class TomoListener extends ListenerAdapter {
 			if (args.length == 1) {
 				// main help
 			} else if (args.length == 2) {
-				if (MinEditDistance.aliases.contains(args[1])) {
-					MinEditDistance.help(event.getChannel(), args);
+				if (MinEditDistance.isAlias(args[1])) {
+					MinEditDistance.help(event.getChannel());
 				}
 			}
-		} else if (MinEditDistance.aliases.contains(args[0])) {
-			MinEditDistance.run(event, args);
+		} else if (args[0].equals("ex")) {  
+			if (args.length == 1) {
+			
+			} else if (args.length == 2) {
+				if (MinEditDistance.isAlias(args[1])) {
+					MinEditDistance cmd = MinEditDistance.random(event.getChannel(), args[1]);
+					cmd.run(event);
+				}
+			}
+			
+			
+		} else if (MinEditDistance.isAlias(args[0])) {
+			MinEditDistance cmd = new MinEditDistance(args);
+			cmd.run(event);
+		} else if (args[0].equals("full")) {
+			Helper.fullEmbed(event.getChannel());
 		}
 	}
 

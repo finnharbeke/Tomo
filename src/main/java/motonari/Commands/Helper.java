@@ -1,10 +1,16 @@
 package motonari.Commands;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
 
+import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
 
 public class Helper {
 	public static void fullEmbed(MessageChannel channel) {
@@ -24,12 +30,26 @@ public class Helper {
 		help.clear();
 	}
 	
-	public static void commandHelp(MessageChannel channel, String cmd, String desc, List<String> aliases, List<String> options) {
+	public static void commandHelp(MessageChannel channel, String name, String cmd, String desc, String[] args, HashSet<String> aliases, HashMap<String, String> options) {
 		EmbedBuilder help = new EmbedBuilder();
-		help.setTitle(cmd);
-		help.addField("`med <str1> <str2> `", desc, false);
-		help.addField("Aliases", mdList(aliases), true);
-		help.addField("Options", mdList(options), true);
+		help.setTitle(name);
+		String in = "`" + Tomo.prefix + cmd;
+		for (String arg : args) in += " <" + arg + ">";
+		if (!options.isEmpty()) {
+			in += " [-o | --option]";
+		}
+		in += "`";
+		help.addField(in, desc, false);
+		if (aliases.size() > 1) help.addField("Aliases", mdList(aliases), true);
+		
+		if (!options.isEmpty()) {
+			LinkedList<String> optStrs = new LinkedList<String>();
+			Object[] keys = options.keySet().toArray();
+			Arrays.sort(keys);
+			for (Object opt : keys) optStrs.addLast("-" + options.get(opt) + " | --" + opt);
+			help.addField("Options", mdList(optStrs), true);
+		}
+		
 		channel.sendMessage(help.build()).queue();
 		help.clear();
 		
@@ -37,5 +57,27 @@ public class Helper {
 	
 	public static String mdList(Iterable<? extends CharSequence> list) {
 		return "```md\n- " + String.join("\n- ", list) + "\n```";
+	}
+
+	public static void error(MessageChannel c, String cmd, String err) {
+		EmbedBuilder error = new EmbedBuilder();
+		error.setColor(0xfc2003);
+		error.setDescription("**Error:**\t" + err);
+		error.setFooter("type \"" + Tomo.prefix + "help " + cmd + "\" for more info");
+		c.sendMessage(error.build()).queue((m) -> {
+			m.delete().queueAfter(10, TimeUnit.SECONDS);
+		});
+		error.clear();
+	}
+
+	public static void reactNumber(MessageChannel c, String messageId, int answer) {
+		String digits = String.valueOf(answer);
+		for (int i = 0; i < digits.length(); i++) {
+			int d = Integer.valueOf(digits.substring(i, i+1));
+			int zero = 0x0030;
+			String emoji = (char)(zero + d) + "\ufe0f\u20e3";
+			c.addReactionById(messageId, emoji).queue();
+		}
+		
 	}
 }

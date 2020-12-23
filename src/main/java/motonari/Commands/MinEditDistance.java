@@ -1,108 +1,295 @@
 package motonari.Commands;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Random;
 
+import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class MinEditDistance {
-	private static int maxLen = 100;
+	private static final String NAME = "Minimal Edit Distance";
+	private static final String MAIN_CMD = "med";
+	private static final String DESC = "Computes the minimal edit distance between two variable-like Strings.";
 	
-	public static List<String> aliases = Arrays.asList(new String[] {"med", "m"});
-	public static List<String> options = Arrays.asList(new String[] {"table", "how", "code"});
+	private static final String[] ARGS = new String[] {"str1", "str2"};
+	private static final HashSet<String> ALIASES = new HashSet<String>( Arrays.asList(new String[] {
+			MAIN_CMD, "m", "mineditdistance"
+	}) );
 	
-	public static String desc = "Minimum Edit Distance";
-	public static String long_desc = "Computes the minimum edit distance between two variable-like strings.";
-	
-	public static void run(MessageReceivedEvent e, String[] args) {
-		MessageChannel c = e.getChannel();
-		if (args.length < 3) {
-			System.out.println("1");
-			help(c, args);
-			return;
-		}
-		String A = args[1];
-		String B = args[2];
-		if (!B.matches("\\w+") || !A.matches("\\w+")) {
-			System.out.println("2");
-			help(c, args);
-			return;
-		}
-		B = B.toLowerCase();
-		A = A.toLowerCase();
-		
-		if (B.length() > maxLen || A.length() > maxLen) {
-			System.out.println("3");
-			help(c, args);
-			return;
-		}
-		boolean table = false;
-		for (int i = 3; i < args.length; i++) {
-			System.out.println(args[i] + " " + !args[i].startsWith("--") +  " " + (args[i].length() < 2) + " " + !options.contains(args[i].substring(2)) + " " + args[i].substring(2) + " [" + String.join(" ", options) + "]");
-			if (!args[i].startsWith("--") || args[i].length() < 2 || !options.contains(args[i].substring(2))) {
-				help(c, args);
-				return;
-			}
-			if (args[i].equals("--table")) table = true;
-		}
-		main(c, A, B, table);
+	private static final HashMap<String, String> OPTIONS = new HashMap<String, String>();
+	static {
+		OPTIONS.put("table", "t");
+		OPTIONS.put("emotes", "e");
+		OPTIONS.put("path", "p");
+		OPTIONS.put("reaction", "r");
 	}
 	
-	private static void main(MessageChannel c, String A, String B, boolean table) {
-		int[][] dp = new int[B.length() + 1][A.length() + 1];
+	private static int MAXLEN = 30;
+	
+	public static boolean isAlias(String alias) {
+		return ALIASES.contains(alias);
+	}
+	
+	public static String name() {
+		return NAME;
+	}
+	
+	public static String desc() {
+		return DESC;
+	}
+	
+	public static void help(MessageChannel c) {
+		Helper.commandHelp(c, NAME, MAIN_CMD, DESC, ARGS, ALIASES, OPTIONS);
+	}
+	
+	String[] args;
+	String str1;
+	String str2;
+	HashSet<String> myOpts;
+
+	MinEditDistance(String[] args) {
+		this.args = args;
+	}
+	
+	public void run(MessageReceivedEvent e) {
+		MessageChannel c = e.getChannel();
+		String err = parse();
+		if (!err.equals("OK")) {
+			Helper.error(c, args[0], err);
+			return;
+		};
+		
+		int[][] dp = main();
+		int answer = dp[str2.length()][str1.length()];
+		
+		if (myOpts.contains("t")) {
+			if (myOpts.contains("e"))
+				emoteTable(c, dp);
+			else
+				table(c, dp);
+		}
+		if (myOpts.contains("p")) path(c, dp);
+		
+		if (myOpts.contains("r"))
+			Helper.reactNumber(c, e.getMessageId(), answer);
+		else
+			sendAnswer(c, answer);
+			
+	}
+
+	private int[][] main() {
+		int[][] dp = new int[str2.length() + 1][str1.length() + 1];
 		// BASECASES
-		for (int i = 0; i <= B.length(); i++) dp[i][0] = i;
-		for (int j = 0; j <= A.length(); j++) dp[0][j] = j;
+		for (int i = 0; i <= str2.length(); i++) dp[i][0] = i;
+		for (int j = 0; j <= str1.length(); j++) dp[0][j] = j;
 		// BOTTOM UP
-		for (int i = 1; i <= B.length(); i++) {
-			for (int j = 1; j <= A.length(); j++) {
-				int topleft = dp[i-1][j-1] + (B.charAt(i-1) == A.charAt(j-1) ? 0 : 1);
+		for (int i = 1; i <= str2.length(); i++) {
+			for (int j = 1; j <= str1.length(); j++) {
+				int topleft = dp[i-1][j-1] + (str2.charAt(i-1) == str1.charAt(j-1) ? 0 : 1);
 				int top = dp[i-1][j] + 1;
 				int left = dp[i][j-1] + 1;
 				int min = Math.min(topleft, Math.min(top, left));
 				dp[i][j] = min;
 			}
 		}
-		String tableOut = "";
-		if (table) tableOut = printTable(dp, A, B, true);
-		String rest = "Minimum Edit Distance between `" + A + "` and `" + B + "` is " + dp[B.length()][A.length()];
-		System.out.println(tableOut.length());
-		if ((tableOut + rest).length() > 2000) tableOut = printTable(dp, A, B, false);
-		String msg = (tableOut + rest).length() > 2000 ? rest : tableOut + rest;
-		System.out.println(tableOut.length());
-		c.sendMessage(msg).queue();
-
+		return dp;
 	}
-	
-	private static String printTable(int[][] dp, String A, String B, boolean pretty) {
-		String s = pretty ? "" : "```\n";
-		for (int j = 0; j < A.length() + 3; j++) {
-			if (j == 0 || j == 2) s += pretty ? ":black_large_square:" : "-";
-			else if (j == 1) s += pretty ? ":orange_square:" : " ";
-			else s += pretty ? toEmote(A.charAt(j-3)) : A.substring(j-3, j-2).toUpperCase();
+
+	private String parse() {
+		if (args.length < 3) {
+			return "Not enough arguments!";
+		}
+		str1 = args[1];
+		str2 = args[2];
+		if (!str1.matches("\\w+") || !str2.matches("\\w+")) {
+			return "`str1` and `str2` must match the java regex `\\w+`!";
+		}
+		str1 = str1.toUpperCase();
+		str2 = str2.toUpperCase();
+		
+		if (str1.length() > MAXLEN || str2.length() > MAXLEN) {
+			return "`str1` and `str2` must be max " + MAXLEN + " characters long!";
+		}
+		
+		myOpts = new HashSet<String>();
+		
+		for (int i = 3; i < args.length; i++) {
+			String arg = args[i];
+			//System.out.println(args[i] + " " + !args[i].startsWith("--") +  " " + (args[i].length() < 2) + " " + !options.contains(args[i].substring(2)) + " " + args[i].substring(2) + " [" + String.join(" ", options) + "]");
+			if (!arg.startsWith("-")) {
+				return "Invalid Argument: `" + arg + "`!";
+			}
+			if (args[i].startsWith("--")) {
+				if (!OPTIONS.containsKey(arg.substring(2))) {
+					return "Invalid Option: `" + arg.substring(2) + "`!";
+				} else {
+					myOpts.add(OPTIONS.get(arg.substring(2)));
+				}
+			} else {
+				// -
+				if (!OPTIONS.containsValue(arg.substring(1))) {
+					return "Invalid Option: `" + arg.substring(1) + "`!";
+				} else {
+					myOpts.add(arg.substring(1));
+				}
+			}
+		}
+		
+		if (myOpts.contains("e") && !myOpts.contains("t")) {
+			return "Option `emotes` requires option `table`!";
+		}
+		
+		if (myOpts.contains("r") && myOpts.size() > 1) {
+			return "Option `reaction` is incompatible with other options!";
+		}
+		
+		return "OK";
+	}
+
+	private void sendAnswer(MessageChannel c, int answer) {
+		String msg = "Minimal Edit Distance between `" + str1 + "` and `" + str2 + "` is **" + answer + "**";
+		c.sendMessage(msg).queue();
+	}
+
+	private void path(MessageChannel c, int[][] dp) {
+		String[] ops = new String[dp[dp.length-1][dp[0].length-1]];
+		
+		int y = dp.length-1;
+		int x = dp[0].length-1;
+		
+		for (int i = 0; i < ops.length; i++) {
+			while (y > 0 && x > 0 && dp[y-1][x-1] == dp[y][x] && str1.charAt(x-1) == str2.charAt(y-1)) {
+				y--; x--;
+			}
+			if (dp[y-1][x] + 1 == dp[y][x]) {
+				ops[ops.length - 1 - i] = "+" + str2.charAt(y-1) + (y-1);
+				y--;
+			} else if (dp[y][x-1] + 1 == dp[y][x]) {
+				ops[ops.length - 1 - i] = "-" + str1.charAt(x-1) + (y);
+				x--;
+			} else if (dp[y-1][x-1] + 1 == dp[y][x]) {
+				ops[ops.length - 1 - i] = "/" + str1.charAt(x-1) + str2.charAt(y-1) + (y-1);
+				y--;
+				x--;
+			} else {
+				ops[ops.length - 1 - i] = "\"This shouldn't exist, maybe contact the creator.\"";
+			}
+		}
+		
+		String current = str1;
+		String[] states = new String[ops.length + 1];
+		//lines[0] = "Start: \"" + current + "\"";
+		states[0] = "`" + current + "`";
+		for (int i = 1; i <= ops.length; i++) {
+			String op = ops[i-1];
+			//System.out.println(current + "; " + op);
+			if (op.charAt(0) == '+') {
+				char ch = op.charAt(1);
+				int ind = Integer.valueOf(op.substring(2));
+				if (ind == current.length())
+					current = current + ch;
+				else
+					current = current.substring(0, ind) + ch + current.substring(ind);
+				states[i] = "`" + current + "`";
+				//lines[i] = "Insert '" + ch + "' at position " + ind + ": \"" + current + "\"";
+			} else if (op.charAt(0) == '-') {
+				char ch = op.charAt(1);
+				int ind = Integer.valueOf(op.substring(2));
+				if (ind == current.length()-1)
+					current = current.substring(0, ind);
+				else
+					current = current.substring(0, ind) + current.substring(ind + 1);
+				states[i] = "`" + current + "`";
+				//lines[i] = "Remove '" + ch + "' at position " + ind + ": \"" + current + "\"";
+			} else if (op.charAt(0) == '/') {
+				char oldch = op.charAt(1);
+				char newch = op.charAt(2);
+				int ind = Integer.valueOf(op.substring(3));
+				current = current.substring(0, ind) + newch + current.substring(ind + 1);
+				states[i] = "`" + current + "`";
+				//lines[i] = "Change '" + oldch + "' to '" + newch + "' at position " + ind + ": \"" + current + "\"";
+			} else {
+				states[i] = "`" + op + "`";
+			}
+		}
+		
+		c.sendMessage("Path: " + String.join(", ", states)).queue();
+		
+	}
+
+	private boolean table(MessageChannel c, int[][] dp) {
+		String s = "```\n";
+		for (int j = 0; j < str1.length() + 3; j++) {
+			if (j == 0 || j == 2) s += "-";
+			else if (j == 1) s += " ";
+			else s += str1.substring(j-3, j-2);
 		}
 		s += "\n";
-		for (int j = 0; j < A.length() + 3; j++) s += pretty ? ":orange_square:" : " ";
+		for (int j = 0; j < str1.length() + 3; j++) s += " ";
 		s += "\n";
-		for (int i = 0; i <= B.length(); i++) {
-			if (i == 0) s += pretty ? ":black_large_square:" : "-";
-			else s += pretty ? toEmote(B.charAt(i-1)) : B.substring(i-1, i).toUpperCase();
-			s += pretty ? ":orange_square:" : " ";
-			for (int j = 0; j <= A.length(); j++) {
+		for (int i = 0; i <= str2.length(); i++) {
+			if (i == 0) s += "-";
+			else s += str2.substring(i-1, i);
+			s += " ";
+			for (int j = 0; j <= str1.length(); j++) {
 				if (dp[i][j] < 10) {
-					s += pretty ? toEmote((char)('0' + dp[i][j])) : String.valueOf(dp[i][j]);
+					s += String.valueOf(dp[i][j]);
 				} else {
-					s += pretty ? toEmote((char)('a' + dp[i][j] - 10)) : (char)('A' + dp[i][j] - 10);
+					s += (char)('A' + dp[i][j] - 10);
 				}
 			}
 			s += "\n";
 		}
-		return pretty ? s : s + "```\n";
+		s += "```\n";
+		if (s.length() > Tomo.msgLim) {
+			c.sendMessage("Can't print table because of the message size limit.").queue();
+			return false;
+		}
+		else {
+			c.sendMessage(s).queue();
+			return true;
+		}
+		
+	}
+
+	private void emoteTable(MessageChannel c, int[][] dp) {
+		String s = "";
+		for (int j = 0; j < str1.length() + 3; j++) {
+			if (j == 0 || j == 2) s += ":black_large_square:";
+			else if (j == 1) s += ":orange_square:";
+			else s += toEmote(str1.toLowerCase().charAt(j-3));
+		}
+		s += "\n";
+		for (int j = 0; j < str1.length() + 3; j++) s += ":orange_square:";
+		s += "\n";
+		for (int i = 0; i <= str2.length(); i++) {
+			if (i == 0) s += ":black_large_square:";
+			else s += toEmote(str2.toLowerCase().charAt(i-1));
+			s += ":orange_square:";
+			for (int j = 0; j <= str1.length(); j++) {
+				if (dp[i][j] < 10) {
+					s += toEmote((char)('0' + dp[i][j]));
+				} else {
+					s += toEmote((char)('a' + dp[i][j] - 10));
+				}
+			}
+			s += "\n";
+		}
+		s = s.replace("::", ":\u200a:");
+		if (s.length() > 2000) {
+			if (table(c, dp)) {			
+				c.sendMessage("Couldn't print emote table because of the message size limit.").queue();
+			}
+		} else {
+			c.sendMessage(s).queue();
+		}
 	}
 	
 	private static String toEmote(char c) {
-		if ('a' <= c && c <= 'z') {
+		if ('a' <= c && c <= 'z') { 
 			return ":regional_indicator_" + c + ":";
 		} else if (c == '0') {
 			return ":zero:";
@@ -131,8 +318,52 @@ public class MinEditDistance {
 		return null;
 	}
 
-	public static void help(MessageChannel c, String[] args) {
-		Helper.commandHelp(c, "med", long_desc, aliases, options);
+	public static MinEditDistance random(MessageChannel c, String cmd) {
+		String[] strs = new String[] {
+			"ueli", "eth_dinfk_2020", "olga", "steurer", "pueschel",
+			"janosch", "ana", "thomas", "best_discord", "another_example", "does_this_help",
+			"advent_of_code", "karatsuba", "bonuspoints", "bp_passed", "bp_failed", 
+			"bob_marley", "nasir_jones", "christopher_wallace", "phenomden"
+		};
+		String argStr = Tomo.prefix + cmd;
+		Random rand = new Random();
+		String str1 = strs[rand.nextInt(strs.length)];
+		String str2 = strs[rand.nextInt(strs.length)];
+		argStr += " " + str1 + " " + str2;
+		
+		if (rand.nextDouble() < 0.3) {
+			if (rand.nextDouble() < 0.5) {
+				argStr += " --reaction";
+			} else {
+				argStr += " -r";
+			}
+		} else {
+			if (rand.nextDouble() < 0.6) {
+				if (rand.nextDouble() < 0.5) {
+					argStr += " --table";
+				} else {
+					argStr += " -t";
+				}
+				
+				if (rand.nextDouble() < 0.6) {
+					if (rand.nextDouble() < 0.5) {
+						argStr += " --emotes";
+					} else {
+						argStr += " -e";
+					}
+				}
+			}
+			if (rand.nextDouble() < 0.3) {
+				if (rand.nextDouble() < 0.5) {
+					argStr += " --path";
+				} else {
+					argStr += " -p";
+				}
+			}
+		}
+		
+		c.sendMessage("Example usage of " + cmd + ": `" + argStr + "`").queue();
+		
+		return new MinEditDistance(argStr.split(" "));
 	}
-
 }
