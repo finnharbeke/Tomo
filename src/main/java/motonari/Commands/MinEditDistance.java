@@ -49,13 +49,16 @@ public class MinEditDistance {
 	String str1;
 	String str2;
 	HashSet<String> myOpts;
+	MessageReceivedEvent e;
+	MessageChannel c;
 
-	MinEditDistance(String[] args) {
+	MinEditDistance(MessageReceivedEvent e, String[] args) {
 		this.args = args;
+		this.e = e;
+		this.c = e.getChannel();
 	}
 	
-	public void run(MessageReceivedEvent e) {
-		MessageChannel c = e.getChannel();
+	public void run() {
 		String err = parse();
 		if (!err.equals("OK")) {
 			Helper.error(c, args[0], err);
@@ -67,16 +70,16 @@ public class MinEditDistance {
 		
 		if (myOpts.contains("t")) {
 			if (myOpts.contains("e"))
-				emoteTable(c, dp);
+				emoteTable(dp);
 			else
-				table(c, dp);
+				table(dp);
 		}
-		if (myOpts.contains("p")) path(c, dp);
+		if (myOpts.contains("p")) path(dp);
 		
 		if (myOpts.contains("r"))
 			Helper.reactNumber(c, e.getMessageId(), answer);
 		else
-			sendAnswer(c, answer);
+			sendAnswer(answer);
 			
 	}
 
@@ -114,29 +117,12 @@ public class MinEditDistance {
 			return "`str1` and `str2` must be max " + MAXLEN + " characters long!";
 		}
 		
-		myOpts = new HashSet<String>();
-		
-		for (int i = 3; i < args.length; i++) {
-			String arg = args[i];
-			//System.out.println(args[i] + " " + !args[i].startsWith("--") +  " " + (args[i].length() < 2) + " " + !options.contains(args[i].substring(2)) + " " + args[i].substring(2) + " [" + String.join(" ", options) + "]");
-			if (!arg.startsWith("-")) {
-				return "Invalid Argument: `" + arg + "`!";
-			}
-			if (args[i].startsWith("--")) {
-				if (!OPTIONS.containsKey(arg.substring(2))) {
-					return "Invalid Option: `" + arg.substring(2) + "`!";
-				} else {
-					myOpts.add(OPTIONS.get(arg.substring(2)));
-				}
-			} else {
-				// -
-				if (!OPTIONS.containsValue(arg.substring(1))) {
-					return "Invalid Option: `" + arg.substring(1) + "`!";
-				} else {
-					myOpts.add(arg.substring(1));
-				}
-			}
+		String err = Helper.checkOptions(args, 1 + ARGS.length, OPTIONS);
+		if (!err.equals("OK")) {
+			return err;
 		}
+		
+		myOpts = Helper.options(args, 1 + ARGS.length, OPTIONS);
 		
 		if (myOpts.contains("e") && !myOpts.contains("t")) {
 			return "Option `emotes` requires option `table`!";
@@ -149,12 +135,12 @@ public class MinEditDistance {
 		return "OK";
 	}
 
-	private void sendAnswer(MessageChannel c, int answer) {
-		String msg = "Minimal Edit Distance between `" + str1 + "` and `" + str2 + "` is **" + answer + "**";
+	private void sendAnswer(int answer) {
+		String msg = "Minimal Edit Distance between `" + str1 + "` and `" + str2 + "` is **" + answer + "**.";
 		c.sendMessage(msg).queue();
 	}
 
-	private void path(MessageChannel c, int[][] dp) {
+	private void path(int[][] dp) {
 		String[] ops = new String[dp[dp.length-1][dp[0].length-1]];
 		
 		int y = dp.length-1;
@@ -220,7 +206,7 @@ public class MinEditDistance {
 		
 	}
 
-	private boolean table(MessageChannel c, int[][] dp) {
+	private boolean table(int[][] dp) {
 		String s = "```\n";
 		for (int j = 0; j < str1.length() + 3; j++) {
 			if (j == 0 || j == 2) s += "-";
@@ -255,7 +241,7 @@ public class MinEditDistance {
 		
 	}
 
-	private void emoteTable(MessageChannel c, int[][] dp) {
+	private void emoteTable(int[][] dp) {
 		String s = "";
 		for (int j = 0; j < str1.length() + 3; j++) {
 			if (j == 0 || j == 2) s += ":black_large_square:";
@@ -280,7 +266,7 @@ public class MinEditDistance {
 		}
 		s = s.replace("::", ":\u200a:");
 		if (s.length() > 2000) {
-			if (table(c, dp)) {			
+			if (table(dp)) {			
 				c.sendMessage("Couldn't print emote table because of the message size limit.").queue();
 			}
 		} else {
@@ -318,14 +304,14 @@ public class MinEditDistance {
 		return null;
 	}
 
-	public static MinEditDistance random(MessageChannel c, String cmd) {
+	public static MinEditDistance random(MessageReceivedEvent e, String cmd) {
 		String[] strs = new String[] {
 			"ueli", "eth_dinfk_2020", "olga", "steurer", "pueschel",
 			"janosch", "ana", "thomas", "best_discord", "another_example", "does_this_help",
 			"advent_of_code", "karatsuba", "bonuspoints", "bp_passed", "bp_failed", 
 			"bob_marley", "nasir_jones", "christopher_wallace", "phenomden"
 		};
-		String argStr = Tomo.prefix + cmd;
+		String argStr = cmd;
 		Random rand = new Random();
 		String str1 = strs[rand.nextInt(strs.length)];
 		String str2 = strs[rand.nextInt(strs.length)];
@@ -362,8 +348,8 @@ public class MinEditDistance {
 			}
 		}
 		
-		c.sendMessage("Example usage of " + cmd + ": `" + argStr + "`").queue();
+		e.getChannel().sendMessage("Example usage of " + cmd + ": `" + Tomo.prefix + argStr + "`").queue();
 		
-		return new MinEditDistance(argStr.split(" "));
+		return new MinEditDistance(e, argStr.split(" "));
 	}
 }

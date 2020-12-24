@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.entities.Activity;
 public class Tomo {
 	public static String prefix = "&";
 	public static int msgLim = 2000;
+	public static int COLOR = 0xED635D;
 	
     public static void main( String[] args ) throws LoginException, FileNotFoundException {
     	Scanner s = new Scanner(new File("token.txt"));

@@ -1,16 +1,18 @@
 package motonari.Commands;
 
+import java.time.OffsetDateTime;
 import java.util.Random;
 
 import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class TomoListener extends ListenerAdapter {
+	
 	public void onMessageReceived(MessageReceivedEvent event) {
 		Message msg = event.getMessage();
 		String raw = msg.getContentRaw();
@@ -25,6 +27,8 @@ public class TomoListener extends ListenerAdapter {
 			} else if (args.length == 2) {
 				if (MinEditDistance.isAlias(args[1])) {
 					MinEditDistance.help(event.getChannel());
+				} else if (MaxSubarrDiff.isAlias(args[1])) {
+					MaxSubarrDiff.help(event.getChannel());
 				}
 			}
 		} else if (args[0].equals("ex")) {  
@@ -32,17 +36,29 @@ public class TomoListener extends ListenerAdapter {
 			
 			} else if (args.length == 2) {
 				if (MinEditDistance.isAlias(args[1])) {
-					MinEditDistance cmd = MinEditDistance.random(event.getChannel(), args[1]);
-					cmd.run(event);
+					MinEditDistance cmd = MinEditDistance.random(event, args[1]);
+					cmd.run();
+				} else if (MaxSubarrDiff.isAlias(args[1])) {
+					MaxSubarrDiff cmd = MaxSubarrDiff.random(event, args[1]);
+					cmd.run();
 				}
 			}
 			
 			
 		} else if (MinEditDistance.isAlias(args[0])) {
-			MinEditDistance cmd = new MinEditDistance(args);
-			cmd.run(event);
+			MinEditDistance cmd = new MinEditDistance(event, args);
+			cmd.run();
+		} else if (MaxSubarrDiff.isAlias(args[0])) {
+			MaxSubarrDiff cmd = new MaxSubarrDiff(event, args);
+			cmd.run();
 		} else if (args[0].equals("full")) {
 			Helper.fullEmbed(event.getChannel());
+		} else if (args[0].equals("ping")) {
+			ping(event);
+		} else if (args[0].equals("pingdiy")) {
+			pingDiy(event);
+		} else if (args[0].equals("icon")) {
+			iconUrl(event);
 		}
 	}
 
@@ -67,10 +83,37 @@ public class TomoListener extends ListenerAdapter {
 		}
 	}
 
-	private static void ping(MessageChannel c) {
-		long time = System.currentTimeMillis();
-		c.sendMessage("Pong!").queue(response -> 
-			response.editMessageFormat("Pong: %d ms", System.currentTimeMillis() - time).queue()
-		);
+	private static void pingDiy(MessageReceivedEvent e) {
+		EmbedBuilder pong = new EmbedBuilder();
+		pong.setTitle("Pong!:ping_pong:");
+		pong.setColor(Tomo.COLOR);
+		OffsetDateTime msgTime = e.getMessage().getTimeCreated();
+		long msgMillis = msgTime.toEpochSecond()*1000 + (msgTime.getNano() / 1000000);
+		long start = System.currentTimeMillis();
+		long gateway = start - msgMillis;
+		pong.setDescription(gateway + " ms");
+		e.getChannel().sendMessage(pong.build()).queue(response -> {
+			pong.setTitle("Pong!:ping_pong:");
+			pong.setDescription((System.currentTimeMillis() - start) + " ms | " + gateway + " ms");
+			pong.setColor(Tomo.COLOR);
+			response.editMessage(pong.build()).queue();
+		});
+		pong.clear();
+	}
+	
+	private static void ping(MessageReceivedEvent e) {
+		EmbedBuilder pong = new EmbedBuilder();
+		e.getJDA().getRestPing().queue( (time) -> {
+			pong.setTitle("Pong!:ping_pong:");
+			pong.setColor(Tomo.COLOR);
+			pong.setDescription(time + " ms | " + e.getJDA().getGatewayPing() + " ms");
+			e.getChannel().sendMessage(pong.build()).queue();
+		});
+		pong.clear();
+	}
+	
+	private void iconUrl(MessageReceivedEvent e) {
+		String iconUrl = e.getJDA().getSelfUser().getAvatarUrl();
+		e.getChannel().sendMessage(iconUrl).queue();
 	}
 }

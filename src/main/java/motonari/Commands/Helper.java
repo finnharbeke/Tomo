@@ -34,7 +34,17 @@ public class Helper {
 		EmbedBuilder help = new EmbedBuilder();
 		help.setTitle(name);
 		String in = "`" + Tomo.prefix + cmd;
-		for (String arg : args) in += " <" + arg + ">";
+		if (args.length == 2 && args[0].equals("oneRepeated")) {
+		}
+		boolean repeatLast = false;
+		for (int i = 0; i < args.length; i++) {
+			String arg = args[i];
+			if (i == args.length - 2 && arg.equals("repeat")) repeatLast = true;
+			else if (i == args.length - 1 && repeatLast)
+				in += " {<" + arg + ">}";				
+			else
+				in += " <" + arg + ">";			
+		}
 		if (!options.isEmpty()) {
 			in += " [-o | --option]";
 		}
@@ -79,5 +89,41 @@ public class Helper {
 			c.addReactionById(messageId, emoji).queue();
 		}
 		
+	}
+	
+	public static String checkOptions(String[] args, int start, HashMap<String, String> OPTIONS) {
+		for (int i = start; i < args.length; i++) {
+			String arg = args[i];
+			//System.out.println(args[i] + " " + !args[i].startsWith("--") +  " " + (args[i].length() < 2) + " " + !options.contains(args[i].substring(2)) + " " + args[i].substring(2) + " [" + String.join(" ", options) + "]");
+			if (!arg.startsWith("-")) {
+				return "Invalid Argument: `" + arg + "`!";
+			}
+			if (args[i].startsWith("--")) {
+				if (!OPTIONS.containsKey(arg.substring(2))) {
+					return "Invalid Option: `" + arg.substring(2) + "`!";
+				}
+			} else {
+				// -
+				if (!OPTIONS.containsValue(arg.substring(1))) {
+					return "Invalid Option: `" + arg.substring(1) + "`!";
+				}
+			}
+		}
+		return "OK";
+	}
+	
+	public static HashSet<String> options(String[] args, int start, HashMap<String, String> OPTIONS) {
+		HashSet<String> res = new HashSet<String>();
+		for (int i = start; i < args.length; i++) {
+			String arg = args[i];
+			//System.out.println(args[i] + " " + !args[i].startsWith("--") +  " " + (args[i].length() < 2) + " " + !options.contains(args[i].substring(2)) + " " + args[i].substring(2) + " [" + String.join(" ", options) + "]");
+			if (args[i].startsWith("--")) {
+				res.add(OPTIONS.get(arg.substring(2)));
+			} else {
+				// -
+				res.add(arg.substring(1));
+			}
+		}
+		return res;
 	}
 }
