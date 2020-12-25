@@ -14,7 +14,7 @@ public class MaxSubarrDiff {
 	private static final String MAIN_CMD = "msd";
 	private static final String DESC = "Computes the maximum subarray difference of some array.";
 	
-	private static final String[] ARGS = new String[] {"int", "int", "repeat", "int"};
+	private static final String ARGSTR = "arr_elem{2,}";
 	private static final HashSet<String> ALIASES = new HashSet<String>( Arrays.asList(new String[] {
 			MAIN_CMD, "maxsubarrdiff"
 	}));
@@ -42,13 +42,14 @@ public class MaxSubarrDiff {
 	}
 	
 	public static void help(MessageChannel c) {
-		Helper.commandHelp(c, NAME, MAIN_CMD, DESC, ARGS, ALIASES, OPTIONS);
+		Helper.commandHelp(c, NAME, MAIN_CMD, DESC, ARGSTR, ALIASES, OPTIONS);
 	}
 	
 	String[] args;
 	int[] arr;
-	String str1;
-	String str2;
+	int[] add;
+	int[] sub;
+	int max;
 	HashSet<String> myOpts;
 	MessageReceivedEvent e;
 	MessageChannel c;
@@ -66,17 +67,14 @@ public class MaxSubarrDiff {
 			return;
 		};
 		
-		Object[] res = main();
-		int answer = (int)res[0];
-		int[] add = (int[])res[1];
-		int[] sub = (int[])res[2];
+		main();
 		
 		if (myOpts.contains("s"))
-			show(add, sub, answer);
+			show(add, sub, max);
 		else if (myOpts.contains("r"))
-			Helper.reactNumber(c, e.getMessageId(), answer);
+			Helper.reactNumber(c, e.getMessageId(), max);
 		else
-			sendAnswer(answer);
+			sendAnswer(max);
 			
 	}
 	
@@ -84,7 +82,7 @@ public class MaxSubarrDiff {
 		c.sendMessage("Maximum Subarray Difference of `" + printArr(arr) + "` is **" + answer + "**.").queue();
 	}
 	
-	private String printArr(int[] arr) {
+	public static String printArr(int[] arr) {
 		String s = "[";
 		for (int i = 0; i < arr.length - 1; i++) {
 			s += arr[i] + " ";
@@ -98,15 +96,15 @@ public class MaxSubarrDiff {
 				"` is \n`sum(" + printArr(add) + ") - sum(" + printArr(sub) + ")`, or **" + answer + "**.").queue();
 	}
 	
-	private Object[] main() {
+	private void main() {
 		int[] maxSubArr = maxSubArr();
 		int[] minSubArr = minSubArr();
 		int[] maxSubArrLen = maxSubArrLen(maxSubArr);
 		int[] minSubArrLen = minSubArrLen(minSubArr);
 		
-		int max = Integer.MIN_VALUE;
-		int[] add = null;
-		int[] sub = null;
+		max = Integer.MIN_VALUE;
+		add = null;
+		sub = null;
 		for (int i = 0; i < arr.length - 1; i++) {
 			if (maxSubArr[i] - minSubArr[i+1] > max) {
 				max = maxSubArr[i] - minSubArr[i+1];
@@ -121,12 +119,7 @@ public class MaxSubarrDiff {
 				}
 			}
 		}
-		
-		Object[] res = new Object[3];
-		res[0] = max;
-		res[1] = add;
-		res[2] = sub;
-		return res;
+
 	}
 	
 	private int[] maxSubArr() {

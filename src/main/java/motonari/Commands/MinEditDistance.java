@@ -14,7 +14,8 @@ public class MinEditDistance {
 	private static final String MAIN_CMD = "med";
 	private static final String DESC = "Computes the minimal edit distance between two variable-like Strings.";
 	
-	private static final String[] ARGS = new String[] {"str1", "str2"};
+	
+	private static final String ARGSTR = "<str1> <str2>";
 	private static final HashSet<String> ALIASES = new HashSet<String>( Arrays.asList(new String[] {
 			MAIN_CMD, "m", "mineditdistance"
 	}) );
@@ -27,7 +28,7 @@ public class MinEditDistance {
 		OPTIONS.put("reaction", "r");
 	}
 	
-	private static int MAXLEN = 30;
+	private static int MAXLEN = 100;
 	
 	public static boolean isAlias(String alias) {
 		return ALIASES.contains(alias);
@@ -42,7 +43,7 @@ public class MinEditDistance {
 	}
 	
 	public static void help(MessageChannel c) {
-		Helper.commandHelp(c, NAME, MAIN_CMD, DESC, ARGS, ALIASES, OPTIONS);
+		Helper.commandHelp(c, NAME, MAIN_CMD, DESC, ARGSTR, ALIASES, OPTIONS);
 	}
 	
 	String[] args;
@@ -117,12 +118,12 @@ public class MinEditDistance {
 			return "`str1` and `str2` must be max " + MAXLEN + " characters long!";
 		}
 		
-		String err = Helper.checkOptions(args, 1 + ARGS.length, OPTIONS);
+		String err = Helper.checkOptions(args, 3, OPTIONS);
 		if (!err.equals("OK")) {
 			return err;
 		}
 		
-		myOpts = Helper.options(args, 1 + ARGS.length, OPTIONS);
+		myOpts = Helper.options(args, 3, OPTIONS);
 		
 		if (myOpts.contains("e") && !myOpts.contains("t")) {
 			return "Option `emotes` requires option `table`!";
@@ -182,7 +183,6 @@ public class MinEditDistance {
 				states[i] = "`" + current + "`";
 				//lines[i] = "Insert '" + ch + "' at position " + ind + ": \"" + current + "\"";
 			} else if (op.charAt(0) == '-') {
-				char ch = op.charAt(1);
 				int ind = Integer.valueOf(op.substring(2));
 				if (ind == current.length()-1)
 					current = current.substring(0, ind);
@@ -191,7 +191,6 @@ public class MinEditDistance {
 				states[i] = "`" + current + "`";
 				//lines[i] = "Remove '" + ch + "' at position " + ind + ": \"" + current + "\"";
 			} else if (op.charAt(0) == '/') {
-				char oldch = op.charAt(1);
 				char newch = op.charAt(2);
 				int ind = Integer.valueOf(op.substring(3));
 				current = current.substring(0, ind) + newch + current.substring(ind + 1);
@@ -264,7 +263,7 @@ public class MinEditDistance {
 			}
 			s += "\n";
 		}
-		s = s.replace("::", ":\u200a:");
+		s = s.replace("::", "::");
 		if (s.length() > 2000) {
 			if (table(dp)) {			
 				c.sendMessage("Couldn't print emote table because of the message size limit.").queue();

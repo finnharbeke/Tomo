@@ -1,13 +1,12 @@
 package motonari.Commands;
 
+import java.io.File;
 import java.time.OffsetDateTime;
 import java.util.Random;
 
 import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -51,6 +50,10 @@ public class TomoListener extends ListenerAdapter {
 		} else if (MaxSubarrDiff.isAlias(args[0])) {
 			MaxSubarrDiff cmd = new MaxSubarrDiff(event, args);
 			cmd.run();
+		} else if (UnboundedKnapsack.isAlias(args[0])) {
+			System.out.println("UKP");
+			UnboundedKnapsack cmd = new UnboundedKnapsack(event, args);
+			cmd.run();
 		} else if (args[0].equals("full")) {
 			Helper.fullEmbed(event.getChannel());
 		} else if (args[0].equals("ping")) {
@@ -59,6 +62,14 @@ public class TomoListener extends ListenerAdapter {
 			pingDiy(event);
 		} else if (args[0].equals("icon")) {
 			iconUrl(event);
+		} else if (args[0].equals("file")) {
+			file(event);
+		} else if (args[0].equals("kekw")) {
+			kekw(event);
+		} else if (args[0].equals("info")) {
+			info(event);
+		} else if (args[0].equals("8ball")) {
+			eight(event, args);
 		}
 	}
 
@@ -73,13 +84,13 @@ public class TomoListener extends ListenerAdapter {
 		info.clear();
 	}
 
-	private static void eight(MessageChannel c, String[] args) {
+	private static void eight(MessageReceivedEvent e, String[] args) {
 		if (args.length < 2) {
-			c.sendMessage("Ask me a yes/no question!").queue();
+			e.getChannel().sendMessage("Ask me a yes/no question!").queue();
 		} else {
 			String[] answers = {"Definitely!", "100%!", "Probably", "Why not?", "You know that yourself!", "Nope.", "Mmmh... no?"};
 			Random r = new Random();
-			c.sendMessage(answers[r.nextInt(answers.length)]).queue();
+			e.getChannel().sendMessage(answers[r.nextInt(answers.length)]).queue();
 		}
 	}
 
@@ -115,5 +126,13 @@ public class TomoListener extends ListenerAdapter {
 	private void iconUrl(MessageReceivedEvent e) {
 		String iconUrl = e.getJDA().getSelfUser().getAvatarUrl();
 		e.getChannel().sendMessage(iconUrl).queue();
+	}
+	
+	private void file(MessageReceivedEvent e) {
+		e.getChannel().sendFile(new File("IMG_7087.jpeg")).queue();
+	}
+	
+	private void kekw(MessageReceivedEvent e) {
+		e.getMessage().addReaction(":kekw:781893007900540928").queue();
 	}
 }

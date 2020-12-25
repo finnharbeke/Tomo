@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
 
 public class Helper {
 	public static void fullEmbed(MessageChannel channel) {
@@ -30,25 +29,14 @@ public class Helper {
 		help.clear();
 	}
 	
-	public static void commandHelp(MessageChannel channel, String name, String cmd, String desc, String[] args, HashSet<String> aliases, HashMap<String, String> options) {
+	public static void commandHelp(MessageChannel channel, String name, String cmd, String desc, String argString, HashSet<String> aliases, HashMap<String, String> options) {
 		EmbedBuilder help = new EmbedBuilder();
 		help.setTitle(name);
-		String in = "`" + Tomo.prefix + cmd;
-		if (args.length == 2 && args[0].equals("oneRepeated")) {
-		}
-		boolean repeatLast = false;
-		for (int i = 0; i < args.length; i++) {
-			String arg = args[i];
-			if (i == args.length - 2 && arg.equals("repeat")) repeatLast = true;
-			else if (i == args.length - 1 && repeatLast)
-				in += " {<" + arg + ">}";				
-			else
-				in += " <" + arg + ">";			
-		}
-		if (!options.isEmpty()) {
+		String in = "`" + Tomo.prefix + cmd + " " + argString;
+		if (!options.isEmpty())
 			in += " [-o | --option]";
-		}
 		in += "`";
+		
 		help.addField(in, desc, false);
 		if (aliases.size() > 1) help.addField("Aliases", mdList(aliases), true);
 		
@@ -82,13 +70,15 @@ public class Helper {
 
 	public static void reactNumber(MessageChannel c, String messageId, int answer) {
 		String digits = String.valueOf(answer);
+		boolean had_one = false;
 		for (int i = 0; i < digits.length(); i++) {
 			int d = Integer.valueOf(digits.substring(i, i+1));
 			int zero = 0x0030;
 			String emoji = (char)(zero + d) + "\ufe0f\u20e3";
+			if (d == 1 && had_one) emoji = "U+1F502";
 			c.addReactionById(messageId, emoji).queue();
-		}
-		
+			if (d == 1) had_one = true;
+		}	
 	}
 	
 	public static String checkOptions(String[] args, int start, HashMap<String, String> OPTIONS) {
