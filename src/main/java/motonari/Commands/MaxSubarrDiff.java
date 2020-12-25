@@ -82,7 +82,7 @@ public class MaxSubarrDiff {
 		c.sendMessage("Maximum Subarray Difference of `" + printArr(arr) + "` is **" + answer + "**.").queue();
 	}
 	
-	public static String printArr(int[] arr) {
+	private static String printArr(int[] arr) {
 		String s = "[";
 		for (int i = 0; i < arr.length - 1; i++) {
 			s += arr[i] + " ";

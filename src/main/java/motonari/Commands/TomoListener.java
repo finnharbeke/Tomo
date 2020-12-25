@@ -28,7 +28,14 @@ public class TomoListener extends ListenerAdapter {
 					MinEditDistance.help(event.getChannel());
 				} else if (MaxSubarrDiff.isAlias(args[1])) {
 					MaxSubarrDiff.help(event.getChannel());
+				} else if (UnboundedKnapsack.isAlias(args[1])) {
+					UnboundedKnapsack.help(event.getChannel());
+				} else if (ZeroOneKnapsack.isAlias(args[1])) {
+					ZeroOneKnapsack.help(event.getChannel());
+				}  else if (Line.isAlias(args[1])) {
+					Line.help(event.getChannel());
 				}
+				
 			}
 		} else if (args[0].equals("ex")) {  
 			if (args.length == 1) {
@@ -51,8 +58,13 @@ public class TomoListener extends ListenerAdapter {
 			MaxSubarrDiff cmd = new MaxSubarrDiff(event, args);
 			cmd.run();
 		} else if (UnboundedKnapsack.isAlias(args[0])) {
-			System.out.println("UKP");
 			UnboundedKnapsack cmd = new UnboundedKnapsack(event, args);
+			cmd.run();
+		} else if (ZeroOneKnapsack.isAlias(args[0])) {
+			ZeroOneKnapsack cmd = new ZeroOneKnapsack(event, args);
+			cmd.run();
+		} else if (Line.isAlias(args[0])) {
+			Line cmd = new Line(event, args);
 			cmd.run();
 		} else if (args[0].equals("full")) {
 			Helper.fullEmbed(event.getChannel());

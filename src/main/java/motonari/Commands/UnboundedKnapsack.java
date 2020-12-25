@@ -15,7 +15,7 @@ public class UnboundedKnapsack {
 	
 	private static final String ARGSTR = "W n (wi vi){n}";
 	private static final HashSet<String> ALIASES = new HashSet<String>( Arrays.asList(new String[] {
-			MAIN_CMD, "u", "unboundedknapsack"
+			MAIN_CMD, "u", "unboundedknapsack", "unboundedknapsackproblem"
 	}) );
 	
 	private static final HashMap<String, String> OPTIONS = new HashMap<String, String>();
@@ -98,11 +98,11 @@ public class UnboundedKnapsack {
 		V = dp[n][W];
 	}
 	
-	private void sendAnswer() {
+	public void sendAnswer() {
 		c.sendMessage("The maximal value you can pack in your knapsack is **" + V + "**.").queue();
 	}
 	
-	private void table() {
+	public void table() {
 		int len = String.valueOf(Math.max(V, Math.max(n, W))).length();
 		String format = "%1$"+(len+1)+"s";
 		
@@ -163,14 +163,13 @@ public class UnboundedKnapsack {
 			}
 		}
 		
-		System.out.println(MaxSubarrDiff.printArr(indx));
-		
+
 		int k = 0;
 		int totalW = 0;
 		String msg = "Take ";
 		boolean first = true;
 		while (k < indx.length) {
-			System.out.println(k);
+			//System.out.println(k);
 			int ind = indx[k];
 			int num = 0;
 			while (k < indx.length) {
@@ -179,14 +178,14 @@ public class UnboundedKnapsack {
 					k++;
 				} else break;
 			}
-			System.out.println(k);
+			//System.out.println(k);
 			if (!first) {
 				if (k != indx.length) msg += ", ";
 				else msg += " and ";
 			}
 			msg += num + " piece";
 			if (num != 1) msg += "s";
-			msg += " of item " + ind + " with weight " + w[ind] + " and value " + v[ind];
+			msg += " of item " + ind + " (" + w[ind] + "kg; " + v[ind] + ".- chf)";
 			
 			totalW += num * w[ind];
 			
@@ -194,13 +193,13 @@ public class UnboundedKnapsack {
 		}
 		msg += ".\nThat's " + indx.length + " item";
 		if (indx.length != 1) msg += "s";
-		msg += " for a total weight of " + totalW + ".";
+		msg += " for a total weight of " + totalW + "kg.";
 		
 		
 		c.sendMessage(msg).queue();
 	}
 	
-	private String parse() {
+	public String parse() {
 		if (args.length < 3) return "Not enough arguments!";
 		if (!args[1].matches("-?\\d+")) return "W (" + args[1] + ") must be an integer!";
 		W = Integer.valueOf(args[1]);
