@@ -4,44 +4,25 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class ZeroOneKnapsack extends UnboundedKnapsack {
-	private static final String NAME = "0-1 Knapsack Problem";
-	private static final String MAIN_CMD = "kp";
-	private static final String DESC = "Computes the Optimum of a 0-1 Knapsack Problem.";
-	
-	private static final String ARGSTR = "W n (wi vi){n}";
-	private static final HashSet<String> ALIASES = new HashSet<String>( Arrays.asList(new String[] {
-			MAIN_CMD, "01", "01kp", "01knapsack", "01knapsackproblem"
-	}) );
-	
-	private static final HashMap<String, String> OPTIONS = new HashMap<String, String>();
-	static {
-		OPTIONS.put("table", "t");
-		OPTIONS.put("what", "w");
-		OPTIONS.put("reaction", "r");
-	}
-	
-	public static boolean isAlias(String alias) {
-		return ALIASES.contains(alias);
-	}
-	
-	public static String name() {
-		return NAME;
-	}
-	
-	public static String desc() {
-		return DESC;
-	}
-	
-	public static void help(MessageChannel c) {
-		Helper.commandHelp(c, NAME, MAIN_CMD, DESC, ARGSTR, ALIASES, OPTIONS);
-	}
-	
-	ZeroOneKnapsack(MessageReceivedEvent e, String[] args) {
-		super(e, args);
+	public ZeroOneKnapsack(MessageReceivedEvent e, String[] args) {super(e, args);}
+	public ZeroOneKnapsack() {super();}
+	public void init() {
+		name = "0-1 Knapsack Problem";
+		cmd = "kp";
+		desc = "Computes the Optimum of a 0-1 Knapsack Problem.";
+		
+		arg_str = "W n (wi vi){n}";
+		aliases = new HashSet<String>( Arrays.asList(new String[] {
+				cmd, "01", "01kp", "01knapsack", "01knapsackproblem"
+		}) );
+		
+		options = new HashMap<String, String>();
+		options.put("table", "t");
+		options.put("what", "w");
+		options.put("reaction", "r");
 	}
 	
 	public void run() {
@@ -66,7 +47,7 @@ public class ZeroOneKnapsack extends UnboundedKnapsack {
 			
 	}
 	
-	private void main() {
+	public void main() {
 		dp = new int[n+1][W+1];
 		for (int i = 1; i <= n; i++) {
 			for (int j = 0; j <= W; j++) {

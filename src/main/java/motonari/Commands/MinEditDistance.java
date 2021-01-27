@@ -6,86 +6,53 @@ import java.util.HashSet;
 import java.util.Random;
 
 import motonari.Tomo.Tomo;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-public class MinEditDistance {
-	private static final String NAME = "Minimal Edit Distance";
-	private static final String MAIN_CMD = "med";
-	private static final String DESC = "Computes the minimal edit distance between two variable-like Strings.";
+public class MinEditDistance extends Command {
+	public MinEditDistance(MessageReceivedEvent e, String[] args) {super(e, args);}
+	public MinEditDistance() {super();}
 	
-	
-	private static final String ARGSTR = "<str1> <str2>";
-	private static final HashSet<String> ALIASES = new HashSet<String>( Arrays.asList(new String[] {
-			MAIN_CMD, "m", "mineditdistance"
-	}) );
-	
-	private static final HashMap<String, String> OPTIONS = new HashMap<String, String>();
-	static {
-		OPTIONS.put("table", "t");
-		OPTIONS.put("emotes", "e");
-		OPTIONS.put("path", "p");
-		OPTIONS.put("reaction", "r");
+	public void init() {
+		name = "Minimal Edit Distance";
+		cmd = "med";
+		desc = "Computes the minimal edit distance between two variable-like Strings.";
+		
+		
+		arg_str = "<str1> <str2>";
+		aliases = new HashSet<String>( Arrays.asList(new String[] {
+				cmd, "m", "mineditdistance"
+		}) );
+		
+		options = new HashMap<String, String>();
+		options.put("table", "t");
+		options.put("emotes", "e");
+		options.put("path", "p");
+		options.put("reaction", "r");
 	}
 	
 	private static int MAXLEN = 100;
 	
-	public static boolean isAlias(String alias) {
-		return ALIASES.contains(alias);
-	}
-	
-	public static String name() {
-		return NAME;
-	}
-	
-	public static String desc() {
-		return DESC;
-	}
-	
-	public static void help(MessageChannel c) {
-		Helper.commandHelp(c, NAME, MAIN_CMD, DESC, ARGSTR, ALIASES, OPTIONS);
-	}
-	
-	String[] args;
 	String str1;
 	String str2;
-	HashSet<String> myOpts;
-	MessageReceivedEvent e;
-	MessageChannel c;
-
-	MinEditDistance(MessageReceivedEvent e, String[] args) {
-		this.args = args;
-		this.e = e;
-		this.c = e.getChannel();
-	}
+	int[][] dp;
 	
-	public void run() {
-		String err = parse();
-		if (!err.equals("OK")) {
-			Helper.error(c, args[0], err);
-			return;
-		};
-		
-		int[][] dp = main();
-		int answer = dp[str2.length()][str1.length()];
-		
+	public void answer() {
 		if (myOpts.contains("t")) {
 			if (myOpts.contains("e"))
-				emoteTable(dp);
+				emoteTable();
 			else
-				table(dp);
+				table();
 		}
-		if (myOpts.contains("p")) path(dp);
+		if (myOpts.contains("p")) path();
 		
 		if (myOpts.contains("r"))
-			Helper.reactNumber(c, e.getMessageId(), answer);
+			Helper.reactNumber(c, e.getMessageId(), dp[dp.length -1 ][dp[0].length - 1]);
 		else
-			sendAnswer(answer);
-			
+			sendAnswer();
 	}
 
-	private int[][] main() {
-		int[][] dp = new int[str2.length() + 1][str1.length() + 1];
+	public void main() {
+		dp = new int[str2.length() + 1][str1.length() + 1];
 		// BASECASES
 		for (int i = 0; i <= str2.length(); i++) dp[i][0] = i;
 		for (int j = 0; j <= str1.length(); j++) dp[0][j] = j;
@@ -99,10 +66,9 @@ public class MinEditDistance {
 				dp[i][j] = min;
 			}
 		}
-		return dp;
 	}
 
-	private String parse() {
+	public String parse() {
 		if (args.length < 3) {
 			return "Not enough arguments!";
 		}
@@ -118,12 +84,12 @@ public class MinEditDistance {
 			return "`str1` and `str2` must be max " + MAXLEN + " characters long!";
 		}
 		
-		String err = Helper.checkOptions(args, 3, OPTIONS);
+		String err = Helper.checkOptions(args, 3, options);
 		if (!err.equals("OK")) {
 			return err;
 		}
 		
-		myOpts = Helper.options(args, 3, OPTIONS);
+		myOpts = Helper.options(args, 3, options);
 		
 		if (myOpts.contains("e") && !myOpts.contains("t")) {
 			return "Option `emotes` requires option `table`!";
@@ -136,12 +102,12 @@ public class MinEditDistance {
 		return "OK";
 	}
 
-	private void sendAnswer(int answer) {
-		String msg = "Minimal Edit Distance between `" + str1 + "` and `" + str2 + "` is **" + answer + "**.";
+	private void sendAnswer() {
+		String msg = "Minimal Edit Distance between `" + str1 + "` and `" + str2 + "` is **" + dp[dp.length - 1][dp[0].length - 1] + "**.";
 		c.sendMessage(msg).queue();
 	}
 
-	private void path(int[][] dp) {
+	private void path() {
 		String[] ops = new String[dp[dp.length-1][dp[0].length-1]];
 		
 		int y = dp.length-1;
@@ -205,7 +171,7 @@ public class MinEditDistance {
 		
 	}
 
-	private boolean table(int[][] dp) {
+	private boolean table() {
 		String s = "```\n";
 		for (int j = 0; j < str1.length() + 3; j++) {
 			if (j == 0 || j == 2) s += "-";
@@ -240,7 +206,7 @@ public class MinEditDistance {
 		
 	}
 
-	private void emoteTable(int[][] dp) {
+	private void emoteTable() {
 		String s = "";
 		for (int j = 0; j < str1.length() + 3; j++) {
 			if (j == 0 || j == 2) s += ":black_large_square:";
@@ -265,7 +231,7 @@ public class MinEditDistance {
 		}
 		s = s.replace("::", "::");
 		if (s.length() > 2000) {
-			if (table(dp)) {			
+			if (table()) {			
 				c.sendMessage("Couldn't print emote table because of the message size limit.").queue();
 			}
 		} else {
@@ -303,14 +269,14 @@ public class MinEditDistance {
 		return null;
 	}
 
-	public static MinEditDistance random(MessageReceivedEvent e, String cmd) {
+	public String example(String alias) {
 		String[] strs = new String[] {
 			"ueli", "eth_dinfk_2020", "olga", "steurer", "pueschel",
 			"janosch", "ana", "thomas", "best_discord", "another_example", "does_this_help",
 			"advent_of_code", "karatsuba", "bonuspoints", "bp_passed", "bp_failed", 
 			"bob_marley", "nasir_jones", "christopher_wallace", "phenomden"
 		};
-		String argStr = cmd;
+		String argStr = alias;
 		Random rand = new Random();
 		String str1 = strs[rand.nextInt(strs.length)];
 		String str2 = strs[rand.nextInt(strs.length)];
@@ -347,8 +313,6 @@ public class MinEditDistance {
 			}
 		}
 		
-		e.getChannel().sendMessage("Example usage of " + cmd + ": `" + Tomo.prefix + argStr + "`").queue();
-		
-		return new MinEditDistance(e, argStr.split(" "));
+		return argStr;
 	}
 }

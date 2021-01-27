@@ -29,22 +29,22 @@ public class Helper {
 		help.clear();
 	}
 	
-	public static void commandHelp(MessageChannel channel, String name, String cmd, String desc, String argString, HashSet<String> aliases, HashMap<String, String> options) {
+	public static void commandHelp(MessageChannel channel, Command cmd) {
 		EmbedBuilder help = new EmbedBuilder();
-		help.setTitle(name);
-		String in = "`" + Tomo.prefix + cmd + " " + argString;
-		if (!options.isEmpty())
+		help.setTitle(cmd.name);
+		String in = "`" + Tomo.prefix + cmd + " " + cmd.arg_str;
+		if (!cmd.options.isEmpty())
 			in += " [-o | --option]";
 		in += "`";
 		
-		help.addField(in, desc, false);
-		if (aliases.size() > 1) help.addField("Aliases", mdList(aliases), true);
+		help.addField(in, cmd.desc, false);
+		if (cmd.aliases.size() > 1) help.addField("Aliases", mdList(cmd.aliases), true);
 		
-		if (!options.isEmpty()) {
+		if (!cmd.options.isEmpty()) {
 			LinkedList<String> optStrs = new LinkedList<String>();
-			Object[] keys = options.keySet().toArray();
+			Object[] keys = cmd.options.keySet().toArray();
 			Arrays.sort(keys);
-			for (Object opt : keys) optStrs.addLast("-" + options.get(opt) + " | --" + opt);
+			for (Object opt : keys) optStrs.addLast("-" + cmd.options.get(opt) + " | --" + opt);
 			help.addField("Options", mdList(optStrs), true);
 		}
 		

@@ -3,51 +3,32 @@ package motonari.Commands;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Random;
 
 import motonari.Tomo.Tomo;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-public class UnboundedKnapsack {
-	private static final String NAME = "Unbounded Knapsack Problem";
-	private static final String MAIN_CMD = "ukp";
-	private static final String DESC = "Computes the Optimum of a Unbounded Knapsack Problem.";
-	
-	private static final String ARGSTR = "W n (wi vi){n}";
-	private static final HashSet<String> ALIASES = new HashSet<String>( Arrays.asList(new String[] {
-			MAIN_CMD, "u", "unboundedknapsack", "unboundedknapsackproblem"
-	}) );
-	
-	private static final HashMap<String, String> OPTIONS = new HashMap<String, String>();
-	static {
-		OPTIONS.put("table", "t");
-		OPTIONS.put("what", "w");
-		OPTIONS.put("reaction", "r");
+public class UnboundedKnapsack extends Command {
+	public UnboundedKnapsack(MessageReceivedEvent e, String[] args) {super(e, args);}
+	public UnboundedKnapsack() {super();}
+	public void init() {
+		name = "Unbounded Knapsack Problem";
+		cmd = "ukp";
+		desc = "Computes the Optimum of a Unbounded Knapsack Problem.";
+		
+		arg_str = "W n (wi vi){n}";
+		aliases = new HashSet<String>( Arrays.asList(new String[] {
+				cmd, "u", "unboundedknapsack", "unboundedknapsackproblem"
+		}) );
+		
+		options = new HashMap<String, String>();
+		options.put("table", "t");
+		options.put("what", "w");
+		options.put("reaction", "r");
 	}
-	
 	private static int MAX = 100;
 	private static int TABLE_W = 20;
 	
-	public static boolean isAlias(String alias) {
-		return ALIASES.contains(alias);
-	}
-	
-	public static String name() {
-		return NAME;
-	}
-	
-	public static String desc() {
-		return DESC;
-	}
-	
-	public static void help(MessageChannel c) {
-		Helper.commandHelp(c, NAME, MAIN_CMD, DESC, ARGSTR, ALIASES, OPTIONS);
-	}
-	
-	MessageReceivedEvent e;
-	MessageChannel c;
-	HashSet<String> myOpts;
-	String[] args;
 	int W;
 	int n;
 	int[] w;
@@ -56,21 +37,7 @@ public class UnboundedKnapsack {
 	int V;
 	int[][] dp;
 	
-	UnboundedKnapsack(MessageReceivedEvent e, String[] args) {
-		this.args = args;
-		this.e = e;
-		this.c = e.getChannel();
-	}
-	
-	public void run() {
-		String err = parse();
-		if (!err.equals("OK")) {
-			Helper.error(c, args[0], err);
-			return;
-		};
-		
-		main();
-		
+	public void answer() {
 		if (myOpts.contains("t"))
 			table();
 		
@@ -81,10 +48,9 @@ public class UnboundedKnapsack {
 			Helper.reactNumber(c, e.getMessageId(), V);
 		else
 			sendAnswer();
-			
 	}
 	
-	private void main() {
+	public void main() {
 		dp = new int[n+1][W+1];
 		for (int i = 1; i <= n; i++) {
 			for (int j = 0; j <= W; j++) {
@@ -126,6 +92,7 @@ public class UnboundedKnapsack {
 				if (t.length() > Tomo.msgLim) break;
 				t += "\n";
 			}
+			t += "\n";
 		}
 		t += "```";
 		if (t.length() > Tomo.msgLim)
@@ -224,15 +191,66 @@ public class UnboundedKnapsack {
 		}
 		
 		int start = 3 + 2 * n;
-		String err = Helper.checkOptions(args, start, OPTIONS);
+		String err = Helper.checkOptions(args, start, options);
 		if (!err.equals("OK")) return err;
 		
-		myOpts = Helper.options(args, start, OPTIONS);
+		myOpts = Helper.options(args, start, options);
 		
 		if (myOpts.contains("r") && myOpts.size() > 1) {
 			return "Option `reaction` is incompatible with other options!";
 		}
 		
 		return "OK";
+	}
+	
+	public String example(String cmd) {
+		final int Wi_LOWER_LIM = 1;
+		final int Wi_UPPER_LIM = 10;
+		final int Vi_LOWER_LIM = 3;
+		final int Vi_UPPER_LIM = 30;
+		final int N_LOWER_LIM = 2;
+		final int N_UPPER_LIM = 8;
+		final int W_LOWER_LIM = 0;
+		final int W_UPPER_LIM = 60;
+		
+		String argStr = cmd;
+		Random rand = new Random();
+		
+		int n = rand.nextInt(N_UPPER_LIM - N_LOWER_LIM) + N_LOWER_LIM;
+		int w = rand.nextInt(W_UPPER_LIM - W_LOWER_LIM) + W_LOWER_LIM;
+		
+		argStr += " " + w + " " + n;
+		
+		for (int i = 0; i < n; i++) {
+			int wi = rand.nextInt(Wi_UPPER_LIM - Wi_LOWER_LIM) + Wi_LOWER_LIM;
+			int vi = rand.nextInt(Vi_UPPER_LIM - Vi_LOWER_LIM) + Vi_LOWER_LIM;
+			argStr += " " + wi + " " + vi;
+		}
+		
+		if (rand.nextDouble() < 0.3) {
+			if (rand.nextDouble() < 0.5) {
+				argStr += " --reaction";
+			} else {
+				argStr += " -r";
+			}
+		} else {
+			if (rand.nextDouble() < 0.7) {
+				if (rand.nextDouble() < 0.5) {
+					argStr += " --table";
+				} else {
+					argStr += " -t";
+				}
+			}
+			if (rand.nextDouble() < 0.7) {
+				if (rand.nextDouble() < 0.5) {
+					argStr += " --what";
+				} else {
+					argStr += " -w";
+				}	
+			}
+		}
+		
+		
+		return argStr;
 	}
 }

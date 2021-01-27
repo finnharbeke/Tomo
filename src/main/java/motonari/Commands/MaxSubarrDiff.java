@@ -5,81 +5,44 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 
-import motonari.Tomo.Tomo;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-public class MaxSubarrDiff {
-	private static final String NAME = "Maximum Subarray Difference";
-	private static final String MAIN_CMD = "msd";
-	private static final String DESC = "Computes the maximum subarray difference of some array.";
+public class MaxSubarrDiff extends Command {
+	public MaxSubarrDiff(MessageReceivedEvent e, String[] args) {super(e, args);}
+	public MaxSubarrDiff() {super();}
+	public void init() {
+		name = "Maximum Subarray Difference";
+		cmd = "msd";
+		desc = "Computes the maximum subarray difference of some array.";
+		
+		arg_str = "arr_elem{2,}";
+		aliases = new HashSet<String>( Arrays.asList(new String[] {
+				cmd, "maxsubarrdiff"
+		}));
+		
+		options = new HashMap<String, String>();
+		options.put("show", "s");
+		options.put("reaction", "r");
 	
-	private static final String ARGSTR = "arr_elem{2,}";
-	private static final HashSet<String> ALIASES = new HashSet<String>( Arrays.asList(new String[] {
-			MAIN_CMD, "maxsubarrdiff"
-	}));
-	
-	private static final HashMap<String, String> OPTIONS = new HashMap<String, String>();
-	static {
-		OPTIONS.put("show", "s");
-		//OPTIONS.put("emotes", "e");
-		//OPTIONS.put("path", "p");
-		OPTIONS.put("reaction", "r");
 	}
-	
 	private static int MAXLEN = 100;
 	
-	public static boolean isAlias(String alias) {
-		return ALIASES.contains(alias);
-	}
-	
-	public static String name() {
-		return NAME;
-	}
-	
-	public static String desc() {
-		return DESC;
-	}
-	
-	public static void help(MessageChannel c) {
-		Helper.commandHelp(c, NAME, MAIN_CMD, DESC, ARGSTR, ALIASES, OPTIONS);
-	}
-	
-	String[] args;
 	int[] arr;
 	int[] add;
 	int[] sub;
 	int max;
-	HashSet<String> myOpts;
-	MessageReceivedEvent e;
-	MessageChannel c;
-
-	MaxSubarrDiff(MessageReceivedEvent e, String[] args) {
-		this.args = args;
-		this.e = e;
-		this.c = e.getChannel();
-	}
 	
-	public void run() {
-		String err = parse();
-		if (!err.equals("OK")) {
-			Helper.error(c, args[0], err);
-			return;
-		};
-		
-		main();
-		
+	public void answer() {
 		if (myOpts.contains("s"))
 			show(add, sub, max);
 		else if (myOpts.contains("r"))
 			Helper.reactNumber(c, e.getMessageId(), max);
 		else
-			sendAnswer(max);
-			
+			sendAnswer();
 	}
 	
-	private void sendAnswer(int answer) {
-		c.sendMessage("Maximum Subarray Difference of `" + printArr(arr) + "` is **" + answer + "**.").queue();
+	private void sendAnswer() {
+		c.sendMessage("Maximum Subarray Difference of `" + printArr(arr) + "` is **" + max + "**.").queue();
 	}
 	
 	private static String printArr(int[] arr) {
@@ -96,7 +59,7 @@ public class MaxSubarrDiff {
 				"` is \n`sum(" + printArr(add) + ") - sum(" + printArr(sub) + ")`, or **" + answer + "**.").queue();
 	}
 	
-	private void main() {
+	public void main() {
 		int[] maxSubArr = maxSubArr();
 		int[] minSubArr = minSubArr();
 		int[] maxSubArrLen = maxSubArrLen(maxSubArr);
@@ -170,7 +133,7 @@ public class MaxSubarrDiff {
 		return res;
 	}
 	
-	private String parse() {
+	public String parse() {
 		if (args.length < 3) {
 			return "Not enough array elements!";
 		}
@@ -190,12 +153,12 @@ public class MaxSubarrDiff {
 		}
 		
 		
-		String err = Helper.checkOptions(args, l+1, OPTIONS);
+		String err = Helper.checkOptions(args, l+1, options);
 		if (!err.equals("OK")) {
 			return err;
 		}
 		
-		myOpts = Helper.options(args, l+1, OPTIONS);
+		myOpts = Helper.options(args, l+1, options);
 		
 		if (myOpts.contains("r") && myOpts.size() > 1) {
 			return "Option `reaction` is incompatible with other options!";
@@ -204,7 +167,7 @@ public class MaxSubarrDiff {
 		return "OK";
 	}
 	
-	public static MaxSubarrDiff random(MessageReceivedEvent e, String cmd) {
+	public String example(String alias) {
 		String argStr = cmd;
 		Random rand = new Random();
 		int lim = 0;
@@ -230,8 +193,6 @@ public class MaxSubarrDiff {
 			}
 		}
 		
-		e.getChannel().sendMessage("Example usage of " + cmd + ": `" + Tomo.prefix + argStr + "`").queue();
-		
-		return new MaxSubarrDiff(e, argStr.split(" "));
+		return argStr;
 	}
 }

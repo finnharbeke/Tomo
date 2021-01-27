@@ -1,17 +1,20 @@
 package motonari.Commands;
 
-public abstract class Canvas {
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+
+public abstract class Canvas extends Command {
+	public Canvas(MessageReceivedEvent e, String[] args) {super(e, args);}
+	public Canvas() {super();}
+
 	String[] map;
-	int W;
-	int H;
+	final int W = 64;
+	final int H = 25;
 	
-	Canvas(int W, int H) {
-		this.W = W;
-		this.H = H;
+	public void main() {
 		initMap();
 	}
 	
-	abstract public void send();
+	abstract public void answer();
 	
 	private void initMap() {
 		map = new String[H];
@@ -49,13 +52,10 @@ public abstract class Canvas {
 		if (y2 > y1) yDir = 1;
 		else yDir = -1;
 		
-		System.out.println(xDir + " " + yDir);
-		
 		int x = x1;
 		int y = y1;
 		boolean steep = false;
 		if (dy > dx) {
-			System.out.println("steep");
 			steep = true;
 			int temp = dx; dx = dy; dy = temp;
 			temp = xDir; xDir = yDir; yDir = temp;
@@ -97,7 +97,8 @@ public abstract class Canvas {
 		assert chars.length == xs.length;
 		assert xs.length == ys.length;
 		for (int i = 0; i < chars.length; i++) {
-				set(xs[i], ys[i], chars[i]);
+			System.out.println(xs[i] + " " + ys[i] + " " + chars[i]);
+			set(xs[i], ys[i], chars[i]);
 		}
 	}
 	
@@ -105,7 +106,6 @@ public abstract class Canvas {
 		
 		// make p1 left of p2
 		if (x2 < x1) {
-			System.out.println("symbol switch");
 			int temp = x2;
 			x2 = x1;
 			x1 = temp;

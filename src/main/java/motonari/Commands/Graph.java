@@ -2,67 +2,34 @@ package motonari.Commands;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Random;
 
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Graph extends Canvas {
-	private static final String NAME = "ascii Graph";
-	private static final String MAIN_CMD = "g";
-	private static final String DESC = "Draws ascii graph.";
+	public Graph(MessageReceivedEvent e, String[] args) { super(e, args); }
+	public Graph() { super(); }
 	
-	private static final String ARGSTR = "n m (u v){m}";
-	private static final HashSet<String> ALIASES = new HashSet<String>( Arrays.asList(new String[] {
-			MAIN_CMD, "graph", "asciigraph", "drawgraph"
-	}) );
-	
-	private static final HashMap<String, String> OPTIONS = new HashMap<String, String>();
-	
-	public static boolean isAlias(String alias) {
-		return ALIASES.contains(alias);
+	public void init() {
+		name = "ascii Graph";
+		cmd = "graph";
+		desc = "Draws ascii graph.";
+		
+		arg_str = "n m (u v){m}";
+		aliases = new HashSet<String>( Arrays.asList(new String[] {
+				cmd, "g", "asciigraph", "drawgraph"
+		}) );
+		
+		options = new HashMap<String, String>();
 	}
 	
-	public static String name() {
-		return NAME;
-	}
-	
-	public static String desc() {
-		return DESC;
-	}
-	
-	public static void help(MessageChannel c) {
-		Helper.commandHelp(c, NAME, MAIN_CMD, DESC, ARGSTR, ALIASES, OPTIONS);
-	}
-	
-	MessageReceivedEvent e;
-	MessageChannel c;
-	HashSet<String> myOpts;
-	String[] args;
 	int n;
 	int m;
 	int[] us;
 	int[] vs;
 	
-	Graph(MessageReceivedEvent e, String[] args) {
-		super(64, 25);
-		this.e = e;
-		this.c = e.getChannel();
-		this.args = args;
-	}
-	
-	public void run() {
-		System.out.println("====");
-		String err = parse();
-		if (!err.equals("OK")) {
-			Helper.error(c, args[0], err);
-			return;
-		};
-		
-		main();
-		send();
-	}
-	
-	private void main() {
+	public void main() {
+		super.main();
 		int[] xs = new int[n];
 		int[] ys = new int[n];
 		
@@ -89,6 +56,7 @@ public class Graph extends Canvas {
 		System.out.println();
 		
 		for (int i = 0; i < m; i++) {
+			System.out.println(i);
 			line(xs[us[i]], ys[us[i]], xs[vs[i]], ys[vs[i]]);
 		}
 		
@@ -99,8 +67,7 @@ public class Graph extends Canvas {
 		}
 	}
 	
-	@Override
-	public void send() {
+	public void answer() {
 		String msg = "```md\n";
 		for (int i = 0; i < H; i++) {
 			msg += map[i];
@@ -119,7 +86,7 @@ public class Graph extends Canvas {
 	
 	private static final int nMax = 36;
 	
-	private String parse() {
+	public String parse() {
 		if (args.length < 3) return "Not enough arguments!";
 		if (!args[1].matches("-?\\d+")) return "n (" + args[1] + ") must be an integer!";
 		n = Integer.valueOf(args[1]);
@@ -149,5 +116,47 @@ public class Graph extends Canvas {
 		}
 		
 		return "OK";
+	}
+
+	public String example(String alias) {
+		String argStr = alias;
+		Random rand = new Random();
+		
+		final int N_LOWER_LIM = 2;
+		final int N_UPPER_LIM = 24;
+		
+		int n = rand.nextInt(N_UPPER_LIM - N_LOWER_LIM) + N_LOWER_LIM;
+		
+		final int M_UPPER_LIM = n * (n - 1) / 2;
+		
+		int m = rand.nextInt(M_UPPER_LIM);
+		
+		argStr += " " + n + " " + m;
+		
+		HashSet<Integer> used = new HashSet<Integer>();
+		
+		for (int i = 0; i < m; i++) {
+			int comb = 0;
+			int u = 0;
+			int v = 0;
+			while (comb == 0 || used.contains(comb)) {
+				u = rand.nextInt(n);
+				v = u;
+				while (v == u) {
+					v = rand.nextInt(n);
+				}
+				if (v < u) {
+					int tmp = u;
+					u = v;
+					v = tmp;
+				}
+				comb = m * u + v;
+			}
+			used.add(comb);
+			
+			argStr += " " + u + " " + v;
+		}
+		
+		return argStr;
 	}
 }

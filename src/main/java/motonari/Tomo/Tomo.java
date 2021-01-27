@@ -15,6 +15,7 @@ public class Tomo {
 	public static String prefix = "&";
 	public static int msgLim = 2000;
 	public static int COLOR = 0xED635D;
+	public static String SRC = "https://github.com/MoriMotonari/Tomo";
 	
     public static void main( String[] args ) throws LoginException, FileNotFoundException {
     	Scanner s = new Scanner(new File("token.txt"));
@@ -22,7 +23,7 @@ public class Tomo {
     	s.close();
     	JDA jda = JDABuilder.createDefault(token).build();
     	jda.getPresence().setActivity(Activity.watching("Ueli's Lectures"));
-    	jda.addEventListener(new TomoListener());
+    	jda.addEventListener(new TomoListener(jda));
     }
     
     

@@ -1,16 +1,25 @@
 package motonari.Commands;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Random;
 
 import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class TomoListener extends ListenerAdapter {
+	
+	JDA jda;
+	public TomoListener(JDA jda) {
+		super();
+		this.jda = jda;
+	}
 	
 	public void onMessageReceived(MessageReceivedEvent event) {
 		Message msg = event.getMessage();
@@ -20,58 +29,62 @@ public class TomoListener extends ListenerAdapter {
 		String[] args = raw.split("\\s+");
 		//System.out.println(String.join(" ", args));
 		if (args.length == 0) return;
+		// abort if bot that's not me
+		if (event.getAuthor().isBot() && !event.getAuthor().getId().equals(this.jda.getSelfUser().getId())) return;
+		
+		ArrayList<Class<? extends Command>> commands = new ArrayList<Class<? extends Command>>();
+		commands.add(MinEditDistance.class);
+		commands.add(MaxSubarrDiff.class);
+		commands.add(UnboundedKnapsack.class);
+		commands.add(ZeroOneKnapsack.class);
+		commands.add(Graph.class);
+		commands.add(Line.class);
+		
 		if (args[0].equals("help")) { // HELP
 			if (args.length == 1) {
-				// main help
+				Help.help(event, jda, commands);
 			} else if (args.length == 2) {
-				if (MinEditDistance.isAlias(args[1])) {
-					MinEditDistance.help(event.getChannel());
-				} else if (MaxSubarrDiff.isAlias(args[1])) {
-					MaxSubarrDiff.help(event.getChannel());
-				} else if (UnboundedKnapsack.isAlias(args[1])) {
-					UnboundedKnapsack.help(event.getChannel());
-				} else if (ZeroOneKnapsack.isAlias(args[1])) {
-					ZeroOneKnapsack.help(event.getChannel());
-				} else if (Line.isAlias(args[1])) {
-					Line.help(event.getChannel());
-				} else if (Graph.isAlias(args[1])) {
-					Graph.help(event.getChannel());
+				for (Class<? extends Command> clazz : commands) {
+					try {
+						Command cmd = clazz.getConstructor().newInstance();
+						if (cmd.isAlias(args[1])) {					
+							cmd.help(event.getChannel());
+							break;
+						}
+					} catch (Exception e) {
+						e.printStackTrace(System.err);
+					}
 				}
-				
 			}
 		} else if (args[0].equals("ex")) {  
 			if (args.length == 1) {
-			
+				try {
+					Random rand = new Random();
+					Class<? extends Command> clazz = commands.get(rand.nextInt(commands.size()));
+					Command cmd = clazz.getConstructor().newInstance();
+					Object[] aliases = cmd.aliases.toArray();
+					String argStr = cmd.example((String)aliases[rand.nextInt(aliases.length)]);
+					event.getChannel().sendMessage(Tomo.prefix + argStr).queue();
+				} catch (Exception e) {
+					e.printStackTrace(System.err);
+				}
 			} else if (args.length == 2) {
-				if (MinEditDistance.isAlias(args[1])) {
-					MinEditDistance cmd = MinEditDistance.random(event, args[1]);
-					cmd.run();
-				} else if (MaxSubarrDiff.isAlias(args[1])) {
-					MaxSubarrDiff cmd = MaxSubarrDiff.random(event, args[1]);
-					cmd.run();
+				for (Class<? extends Command> clazz : commands) {
+					try {
+						Command cmd = clazz.getConstructor().newInstance();
+						if (cmd.isAlias(args[1])) {					
+							String argStr = cmd.example(args[1]);
+							event.getChannel().sendMessage(Tomo.prefix + argStr).queue();
+							break;
+						}
+					} catch (Exception e) {
+						e.printStackTrace(System.err);
+					}
 				}
 			}
 			
-			
-		} else if (MinEditDistance.isAlias(args[0])) {
-			MinEditDistance cmd = new MinEditDistance(event, args);
-			cmd.run();
-		} else if (MaxSubarrDiff.isAlias(args[0])) {
-			MaxSubarrDiff cmd = new MaxSubarrDiff(event, args);
-			cmd.run();
-		} else if (UnboundedKnapsack.isAlias(args[0])) {
-			UnboundedKnapsack cmd = new UnboundedKnapsack(event, args);
-			cmd.run();
-		} else if (ZeroOneKnapsack.isAlias(args[0])) {
-			ZeroOneKnapsack cmd = new ZeroOneKnapsack(event, args);
-			cmd.run();
-		} else if (Line.isAlias(args[0])) {
-			Line cmd = new Line(event, args);
-			cmd.run();
-		} else if (Graph.isAlias(args[0])) {
-			Graph cmd = new Graph(event, args);
-			cmd.run();
-		} else if (args[0].equals("full")) {
+		}
+		else if (args[0].equals("full")) {
 			Helper.fullEmbed(event.getChannel());
 		} else if (args[0].equals("ping")) {
 			ping(event);
@@ -83,19 +96,32 @@ public class TomoListener extends ListenerAdapter {
 			file(event);
 		} else if (args[0].equals("kekw")) {
 			kekw(event);
-		} else if (args[0].equals("info")) {
-			info(event);
+		} else if (args[0].equals("source")) {
+			source(event);
 		} else if (args[0].equals("8ball")) {
 			eight(event, args);
+		} else {
+			for (Class<? extends Command> clazz : commands) {
+				try {
+					Command cmd = clazz.getConstructor().newInstance();
+					if (cmd.isAlias(args[0])) {					
+						cmd = clazz.getConstructor(MessageReceivedEvent.class, String[].class).newInstance(event, args);
+						cmd.run();
+						break;
+					}
+				} catch (Exception e) {
+					e.printStackTrace(System.err);
+					if (e instanceof InvocationTargetException) e.getCause().printStackTrace(System.err);
+				}
+			}
 		}
 	}
 
-	private static void info(MessageReceivedEvent e) {
+	private static void source(MessageReceivedEvent e) {
 		EmbedBuilder info = new EmbedBuilder();
-		info.setTitle("Tomo Info");
-		
+		info.setTitle("Tomo Source");
+		info.setDescription(Tomo.SRC);
 		info.setFooter("Summoned by " + e.getAuthor().getName(), e.getAuthor().getAvatarUrl());
-		System.out.println(e.getAuthor().getAvatarUrl());
 		info.setColor(0xED635E);
 		e.getChannel().sendMessage(info.build()).queue();
 		info.clear();
@@ -140,16 +166,16 @@ public class TomoListener extends ListenerAdapter {
 		pong.clear();
 	}
 	
-	private void iconUrl(MessageReceivedEvent e) {
+	private static void iconUrl(MessageReceivedEvent e) {
 		String iconUrl = e.getJDA().getSelfUser().getAvatarUrl();
 		e.getChannel().sendMessage(iconUrl).queue();
 	}
 	
-	private void file(MessageReceivedEvent e) {
+	private static void file(MessageReceivedEvent e) {
 		e.getChannel().sendFile(new File("IMG_7087.jpeg")).queue();
 	}
 	
-	private void kekw(MessageReceivedEvent e) {
+	private static void kekw(MessageReceivedEvent e) {
 		e.getMessage().addReaction(":kekw:781893007900540928").queue();
 	}
 }
