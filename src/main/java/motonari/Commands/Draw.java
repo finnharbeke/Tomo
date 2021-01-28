@@ -15,7 +15,7 @@ public class Draw extends Canvas {
 	public void init() {
 		name = "Draw";
 		cmd = "draw";
-		desc = "Draws a points and lines on an ascii canvas.";
+		desc = "Draws points and lines on an ascii canvas.";
 		arg_str = "(p x y ch | l x1 y1 x2 y2){1,}";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
 				cmd, "d", "asciidraw"
