@@ -14,7 +14,7 @@ public class Line extends Canvas {
 	
 		name = "ascii Line";
 		cmd = "line";
-		desc = "Draws ascii line";
+		desc = "Draws ascii line.";
 		
 		arg_str = "x1 y1 x2 y2";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
@@ -32,15 +32,6 @@ public class Line extends Canvas {
 	public void main() {
 		super.main();
 		line(x1, y1, x2, y2);
-	}
-	
-	public void answer() {
-		String msg = "```\n";
-		for (int i = 0; i < H; i++) {
-			msg += map[i];
-		}
-		msg += "```";
-		c.sendMessage(msg).queue();
 	}
 	
 	public String parse() {

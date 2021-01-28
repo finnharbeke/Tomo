@@ -21,8 +21,8 @@ public abstract class Command {
 		return aliases.contains(alias);
 	}
 	
-	public void help(MessageChannel c) {
-		Helper.commandHelp(c, this);
+	public void help(MessageChannel c, String alias) {
+		Helper.commandHelp(c, this, alias);
 	}
 	
 	abstract public void init();

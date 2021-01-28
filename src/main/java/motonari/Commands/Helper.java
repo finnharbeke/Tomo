@@ -29,10 +29,10 @@ public class Helper {
 		help.clear();
 	}
 	
-	public static void commandHelp(MessageChannel channel, Command cmd) {
+	public static void commandHelp(MessageChannel channel, Command cmd, String alias) {
 		EmbedBuilder help = new EmbedBuilder();
 		help.setTitle(cmd.name);
-		String in = "`" + Tomo.prefix + cmd + " " + cmd.arg_str;
+		String in = "`" + Tomo.prefix + alias + " " + cmd.arg_str;
 		if (!cmd.options.isEmpty())
 			in += " [-o | --option]";
 		in += "`";

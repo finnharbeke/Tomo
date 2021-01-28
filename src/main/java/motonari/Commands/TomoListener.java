@@ -39,6 +39,7 @@ public class TomoListener extends ListenerAdapter {
 		commands.add(ZeroOneKnapsack.class);
 		commands.add(Graph.class);
 		commands.add(Line.class);
+		commands.add(Point.class);
 		
 		if (args[0].equals("help")) { // HELP
 			if (args.length == 1) {
@@ -48,7 +49,7 @@ public class TomoListener extends ListenerAdapter {
 					try {
 						Command cmd = clazz.getConstructor().newInstance();
 						if (cmd.isAlias(args[1])) {					
-							cmd.help(event.getChannel());
+							cmd.help(event.getChannel(), args[1]);
 							break;
 						}
 					} catch (Exception e) {

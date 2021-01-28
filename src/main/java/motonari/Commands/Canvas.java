@@ -14,7 +14,14 @@ public abstract class Canvas extends Command {
 		initMap();
 	}
 	
-	abstract public void answer();
+	public void answer() {
+		String msg = "```md\n";
+		for (int i = 0; i < H; i++) {
+			msg += map[i];
+		}
+		msg += "```";
+		c.sendMessage(msg).queue();
+	}
 	
 	private void initMap() {
 		map = new String[H];

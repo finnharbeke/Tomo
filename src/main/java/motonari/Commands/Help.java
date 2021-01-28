@@ -15,7 +15,7 @@ public class Help {
 		help.setThumbnail(jda.getSelfUser().getAvatarUrl());
 		help.setTitle(jda.getSelfUser().getName() + "'s Help");
 		help.setDescription("For more info on a particular command:\n```yaml\n&help cmd```");
-		help.setFooter(e.getAuthor().getName() + "called for help!", e.getAuthor().getAvatarUrl());
+		help.setFooter(e.getAuthor().getName() + " called for help!", e.getAuthor().getAvatarUrl());
 		for (Class<? extends Command> clazz : commands) {
 			try {
 				Command cmd = clazz.getConstructor().newInstance();

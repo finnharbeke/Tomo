@@ -67,15 +67,6 @@ public class Graph extends Canvas {
 		}
 	}
 	
-	public void answer() {
-		String msg = "```md\n";
-		for (int i = 0; i < H; i++) {
-			msg += map[i];
-		}
-		msg += "```";
-		c.sendMessage(msg).queue();
-	}
-	
 	private int transformXToMap(int x) {
 		return x + (int)(W / 2);
 	}
