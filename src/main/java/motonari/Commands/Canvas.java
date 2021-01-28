@@ -104,7 +104,7 @@ public abstract class Canvas extends Command {
 		assert chars.length == xs.length;
 		assert xs.length == ys.length;
 		for (int i = 0; i < chars.length; i++) {
-			System.out.println(xs[i] + " " + ys[i] + " " + chars[i]);
+			//System.out.println(xs[i] + " " + ys[i] + " " + chars[i]);
 			set(xs[i], ys[i], chars[i]);
 		}
 	}

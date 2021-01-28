@@ -40,6 +40,7 @@ public class TomoListener extends ListenerAdapter {
 		commands.add(Graph.class);
 		commands.add(Line.class);
 		commands.add(Point.class);
+		commands.add(Draw.class);
 		
 		if (args[0].equals("help")) { // HELP
 			if (args.length == 1) {
