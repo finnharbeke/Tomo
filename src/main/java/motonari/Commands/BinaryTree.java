@@ -1,5 +1,6 @@
 package motonari.Commands;
 
+import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public abstract class BinaryTree extends Canvas {
@@ -7,16 +8,100 @@ public abstract class BinaryTree extends Canvas {
 	public BinaryTree() {super();}
 	
 	private int id_counter = 0;
-	private int totalH = 0;
 	protected Node origin = null;
 	final int max_Val = 100;
 	
+	String long_draw_res;
+	
 	public void draw() {
-		if (totalH <= 5) {
+		if (totalHeight() <= 5) {
 			write(3, 1, "#format: [id|vl|h]");
 			origin.draw(this, 1, 4, this.H / 2);
 		} else {
+			final int line = 96;
 			
+			long_draw_res = "```css\n";
+			
+			Node[] top = null;
+			Node[] bot;
+
+			for (int lev = 0; lev < totalHeight(); lev++) {
+				long_draw_res += "#level #" + lev + "\n";
+				
+				if (lev == 0) {
+					bot = new Node[1];
+					bot[0] = origin;
+				} else {
+					bot = new Node[2 * top.length];
+					for (int j = 0; j < top.length; j++) {
+						if (top[j] != null) {
+							bot[2 * j] = top[j].left();
+							bot[2 * j + 1] = top[j].right();
+						}
+					}
+				}
+				
+				int step = line / bot.length;
+				
+				if (step < 3)
+					step = 3;
+				
+				for (int start = 0; start < bot.length; start += line / step) {
+					for (int i = 0; i < line / step && start + i < bot.length; i++) {
+						for (int j = 0; j < step / 2 - 1; j++)
+							long_draw_res += " ";
+						if (bot[start + i] == null)
+							long_draw_res += "  ";
+						else {
+							String id_str = String.valueOf(bot[start + i].getId());
+							if (id_str.length() == 1) id_str = "0" + id_str;
+							long_draw_res += id_str;
+						}
+						if (i != line / step - 1 && start + i != bot.length - 1) {
+							for (int j = 0; j < step / 2 - 1; j++)
+								long_draw_res += " ";
+							if (step == 3)
+								long_draw_res += " ";
+						}
+					}
+					long_draw_res += "\n";
+					for (int i = 0; i < line / step && start + i < bot.length; i++) {
+						for (int j = 0; j < step / 2 - 1; j++)
+							long_draw_res += " ";
+						if (bot[start + i] == null)
+							long_draw_res += "  ";
+						else {
+							String val_str = String.valueOf(bot[start + i].getVal());
+							if (val_str.length() == 1) val_str = " " + val_str;
+							long_draw_res += val_str;
+						}
+						if (i != line / step - 1 && start + i != bot.length - 1) {
+							for (int j = 0; j < step / 2 - 1; j++)
+								long_draw_res += " ";
+							if (step == 3)
+								long_draw_res += " ";
+						}
+					}
+					long_draw_res += "\n\n";
+				}
+				
+				top = bot;
+			}
+			
+			long_draw_res += "```";
+			
+		}
+	}
+	
+	public void answer() {
+		if (totalHeight() <= 5) {
+			super.answer("css");
+		} else {
+			if (long_draw_res.length() < Tomo.msgLim) {				
+				c.sendMessage(long_draw_res).queue();
+			} else {
+				c.sendMessage("Couldn't print Binary Tree, because of the " + Tomo.msgLim + " char Message Limit.").queue();
+			}
 		}
 	}
 	
@@ -26,6 +111,13 @@ public abstract class BinaryTree extends Canvas {
 	
 	public void setOrigin(int value) {
 		this.origin = new Node(this.getId(), value);
+	}
+	
+	public int totalHeight() {
+		if (origin == null)
+			return 0;
+		else
+			return origin.getH();
 	}
 	
 }
