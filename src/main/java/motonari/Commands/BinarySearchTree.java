@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Random;
 
 import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -60,7 +61,7 @@ public class BinarySearchTree extends BinaryTree {
 			} else if (act == 'q') {
 				full_log.add("query " + (String.valueOf(val).length() == 1 ? " " : "") + val);
 				Node node = query(origin, val);
-				if (node.getVal() == val) {
+				if (node != null && node.getVal() == val) {
 					full_log.set(i, full_log.get(i) + ": id = " + node.getId());
 				} else {
 					full_log.set(i, full_log.get(i) + ": no node with value " + val + " found");
@@ -203,6 +204,7 @@ public class BinarySearchTree extends BinaryTree {
 	}
 	
 	void updateHeights(Node node) {
+		if (node == null) return;
 		if (node.left() != null) {
 			updateHeights(node.left());
 		}
@@ -216,6 +218,7 @@ public class BinarySearchTree extends BinaryTree {
 	}
 	
 	private Node query(Node node, int value) {
+		if (node == null) return null;
 		if (value < node.getVal()) {
 			if (node.left() != null) {
 				return query(node.left(), value);
@@ -268,6 +271,58 @@ public class BinarySearchTree extends BinaryTree {
 	}
 
 	public String example(String alias) {
-		return "i 1";
+		final int M_UPPER_LIM = 30;
+		final int M_LOWER_LIM = 1;
+		final int N_LIM = max_Val - 1;
+
+		String argStr = alias;
+		
+		Random rand = new Random();
+		int m = rand.nextInt(M_UPPER_LIM - M_LOWER_LIM) + M_LOWER_LIM;
+		
+		int[] used = new int[m];
+		int count = 0;
+
+		for (int i = 0; i < m; i++) {
+			double r = rand.nextDouble();
+			if (r < 0.7) {
+				int n = rand.nextInt(N_LIM) + 1;
+				argStr += " i " + n;
+				used[i] = n;
+				count++;
+			} else if (r < 0.9 && count > 0) {
+				argStr += " d ";
+				int n = 0;
+				int j = 0;
+				while (n == 0) {
+					j = rand.nextInt(m);
+					n = used[j];
+				}
+				argStr += n;
+				used[j] = 0;
+				count--;
+			} else {
+				argStr += " q ";
+				int n = 0;
+				int j = 0;
+				r = rand.nextDouble();
+				while (n == 0 && !(r < 0.1)) {
+					j = rand.nextInt(m);
+					n = used[j];
+					r = rand.nextDouble();
+				}
+				if (r < 0.3) n = rand.nextInt(N_LIM) + 1;
+				argStr += n;
+			}
+		}
+		if (rand.nextDouble() < 0.3) {
+			if (rand.nextDouble() < 0.5) {
+				argStr += " -l";
+			} else {
+				argStr += " --log";
+			}
+		}
+		
+		return argStr;
 	}
 }
