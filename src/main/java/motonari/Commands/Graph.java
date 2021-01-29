@@ -46,17 +46,7 @@ public class Graph extends Canvas {
 			angle += (2 * Math.PI) / n;
 		}
 		
-		for (int i = 0; i < n; i++) {
-			System.out.print(xs[i] + " ");
-		}
-		System.out.println();
-		for (int i = 0; i < n; i++) {
-			System.out.print(ys[i] + " ");
-		}
-		System.out.println();
-		
 		for (int i = 0; i < m; i++) {
-			System.out.println(i);
 			line(xs[us[i]], ys[us[i]], xs[vs[i]], ys[vs[i]]);
 		}
 		
