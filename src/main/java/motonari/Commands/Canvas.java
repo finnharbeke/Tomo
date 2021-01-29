@@ -14,13 +14,17 @@ public abstract class Canvas extends Command {
 		initMap();
 	}
 	
-	public void answer() {
-		String msg = "```md\n";
+	public void answer(String lang) {
+		String msg = "```" + lang + "\n";
 		for (int i = 0; i < H; i++) {
 			msg += map[i];
 		}
 		msg += "```";
 		c.sendMessage(msg).queue();
+	}
+	
+	public void answer() {
+		this.answer("md");
 	}
 	
 	private void initMap() {
@@ -33,6 +37,12 @@ public abstract class Canvas extends Command {
 	
 	public void set(int x, int y, char ch) {
 		map[y] = map[y].substring(0, x) + ch + map[y].substring(x + 1);
+	}
+	
+	public void write(int x, int y, String s) {
+		for (int i = 0; i < s.length(); i++) {
+			set(x + i, y, s.charAt(i));
+		}
 	}
 	
 	public void line(int x1, int y1, int x2, int y2) {
