@@ -2,28 +2,105 @@ package motonari.Tomo;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
 import java.util.Scanner;
 
 import javax.security.auth.login.LoginException;
 
-import motonari.Commands.TomoListener;
+import Algorithms.BinarySearchTree;
+import Algorithms.MaxSubarrDiff;
+import Algorithms.UnboundedKnapsack;
+import Algorithms.ZeroOneKnapsack;
+import Ascii.Draw;
+import Ascii.Graph;
+import Ascii.Line;
+import Ascii.Point;
+import motonari.Commands.Command;
+import motonari.Commands.Example;
+import motonari.Commands.Help;
+import motonari.Grades.Guess;
+import motonari.Grades.ProcessStats;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 
 public class Tomo {
-	public static String prefix = "&";
-	public static int msgLim = 2000;
-	public static int COLOR = 0xED635D;
-	public static String SRC = "https://github.com/MoriMotonari/Tomo";
+	public static final String prefix = "&";
+	public static final boolean DEV = true;
+	public static final String dev_pre = "d";
 	
-    public static void main( String[] args ) throws LoginException, FileNotFoundException {
+	public static final int msgLim = 2000;
+	public static final int COLOR = 0xED635D;
+	public static final String SRC = "https://github.com/MoriMotonari/Tomo";
+	public static final String ADMIN = "304014259975880704";
+	
+	public static JDA jda;
+	
+	public static final HashMap<String, ArrayList<Class<? extends Command>>> commands;
+	static {
+		commands = new HashMap<String, ArrayList<Class<? extends Command>>>();
+		
+		String sub = "Sub";
+		commands.put(sub, new ArrayList<Class<? extends Command>>());
+		commands.get(sub).add(Help.class);
+		commands.get(sub).add(Example.class);
+		
+		String algos = "Algorithms";
+		commands.put(algos, new ArrayList<Class<? extends Command>>());
+		commands.get(algos).add(MaxSubarrDiff.class);
+		commands.get(algos).add(UnboundedKnapsack.class);
+		commands.get(algos).add(ZeroOneKnapsack.class);
+		commands.get(algos).add(BinarySearchTree.class);
+		
+		String ascii = "Ascii";
+		commands.put(ascii, new ArrayList<Class<? extends Command>>());
+		commands.get(ascii).add(Graph.class);
+		commands.get(ascii).add(Line.class);
+		commands.get(ascii).add(Point.class);
+		commands.get(ascii).add(Draw.class);
+		
+		String grades = "Grades";
+		commands.put(grades, new ArrayList<Class<? extends Command>>());
+		commands.get(grades).add(Guess.class);
+		commands.get(grades).add(ProcessStats.class);
+	}
+	
+	public static Class<? extends Command> random(boolean byAdmin) {
+		Random r = new Random();
+		ArrayList<Class<? extends Command>> sub = commands.get(commands.keySet().toArray()[r.nextInt(commands.keySet().size())]);
+		return sub.get(r.nextInt(sub.size()));
+	}
+	
+	
+	
+	public static Class<? extends Command> fromAlias(String alias) {
+		for (ArrayList<Class<? extends Command>> list : commands.values()) {
+			for (Class<? extends Command> clazz : list) {
+				try {
+					Command cmd = clazz.getConstructor().newInstance();
+					if (cmd.isAlias(alias)) {
+						return clazz;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					if (e instanceof InvocationTargetException) e.getCause().printStackTrace();
+				}
+			}
+		}
+		return null;
+	}
+	
+	
+    public static void main(String[] args) throws LoginException, FileNotFoundException {
     	Scanner s = new Scanner(new File("token.txt"));
     	String token = s.next();
     	s.close();
-    	JDA jda = JDABuilder.createDefault(token).build();
+    	jda = JDABuilder.createDefault(token).build();
     	jda.getPresence().setActivity(Activity.watching("Ueli's Lectures"));
-    	jda.addEventListener(new TomoListener(jda));
+    	jda.addEventListener(new TomoListener());
     }
     
     

@@ -1,96 +1,47 @@
-package motonari.Commands;
+package motonari.Tomo;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.Random;
 
-import motonari.Tomo.Tomo;
+import motonari.Commands.Command;
+import motonari.Grades.Grades;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class TomoListener extends ListenerAdapter {
 	
-	JDA jda;
-	public TomoListener(JDA jda) {
+	public TomoListener() {
 		super();
-		this.jda = jda;
+		Grades.buildDB();
 	}
 	
 	public void onMessageReceived(MessageReceivedEvent event) {
 		Message msg = event.getMessage();
 		String raw = msg.getContentRaw();
+		if (Tomo.DEV) {
+			if (!raw.startsWith(Tomo.dev_pre)) return;
+			else raw = raw.substring(Tomo.dev_pre.length());
+		}
+		
 		if (!raw.startsWith(Tomo.prefix)) return;
 		raw = raw.substring(Tomo.prefix.length());
 		String[] args = raw.split("\\s+");
 		//System.out.println(String.join(" ", args));
 		if (args.length == 0) return;
+		
 		// abort if bot that's not me
-		if (event.getAuthor().isBot() && !event.getAuthor().getId().equals(this.jda.getSelfUser().getId())) return;
+		if (event.getAuthor().isBot() && !event.getAuthor().getId().equals(Tomo.jda.getSelfUser().getId())) return;
 		
-		ArrayList<Class<? extends Command>> commands = new ArrayList<Class<? extends Command>>();
-		commands.add(MinEditDistance.class);
-		commands.add(MaxSubarrDiff.class);
-		commands.add(UnboundedKnapsack.class);
-		commands.add(ZeroOneKnapsack.class);
-		commands.add(Graph.class);
-		commands.add(Line.class);
-		commands.add(Point.class);
-		commands.add(Draw.class);
-		commands.add(BinarySearchTree.class);
-		
-		if (args[0].equals("help")) { // HELP
-			if (args.length == 1) {
-				Help.help(event, jda, commands);
-			} else if (args.length == 2) {
-				for (Class<? extends Command> clazz : commands) {
-					try {
-						Command cmd = clazz.getConstructor().newInstance();
-						if (cmd.isAlias(args[1])) {					
-							cmd.help(event.getChannel(), args[1]);
-							break;
-						}
-					} catch (Exception e) {
-						e.printStackTrace(System.err);
-					}
-				}
-			}
-		} else if (args[0].equals("ex")) {  
-			if (args.length == 1) {
-				try {
-					Random rand = new Random();
-					Class<? extends Command> clazz = commands.get(rand.nextInt(commands.size()));
-					Command cmd = clazz.getConstructor().newInstance();
-					Object[] aliases = cmd.aliases.toArray();
-					String argStr = cmd.example((String)aliases[rand.nextInt(aliases.length)]);
-					event.getChannel().sendMessage(Tomo.prefix + argStr).queue();
-				} catch (Exception e) {
-					e.printStackTrace(System.err);
-				}
-			} else if (args.length == 2) {
-				for (Class<? extends Command> clazz : commands) {
-					try {
-						Command cmd = clazz.getConstructor().newInstance();
-						if (cmd.isAlias(args[1])) {					
-							String argStr = cmd.example(args[1]);
-							event.getChannel().sendMessage(Tomo.prefix + argStr).queue();
-							break;
-						}
-					} catch (Exception e) {
-						e.printStackTrace(System.err);
-					}
-				}
-			}
-			
-		}
-		else if (args[0].equals("full")) {
+		if (args[0].equals("full")) {
 			Helper.fullEmbed(event.getChannel());
 		} else if (args[0].equals("ping")) {
 			ping(event);
+		} else if (args[0].equals("say")) {
+			event.getChannel().sendMessage(raw.substring(raw.indexOf("say") + 4)).queue();
 		} else if (args[0].equals("pingdiy")) {
 			pingDiy(event);
 		} else if (args[0].equals("icon")) {
@@ -103,19 +54,16 @@ public class TomoListener extends ListenerAdapter {
 			source(event);
 		} else if (args[0].equals("8ball")) {
 			eight(event, args);
-		} else {
-			for (Class<? extends Command> clazz : commands) {
-				try {
-					Command cmd = clazz.getConstructor().newInstance();
-					if (cmd.isAlias(args[0])) {					
-						cmd = clazz.getConstructor(MessageReceivedEvent.class, String[].class).newInstance(event, args);
-						cmd.run();
-						break;
-					}
-				} catch (Exception e) {
-					e.printStackTrace(System.err);
-					if (e instanceof InvocationTargetException) e.getCause().printStackTrace(System.err);
-				}
+		} else if (Tomo.fromAlias(args[0]) != null) {
+			try {
+				Command cmd = Tomo.fromAlias(args[0])
+					.getConstructor(MessageReceivedEvent.class, String[].class)
+					.newInstance(event, args);
+				cmd.run();
+			} catch (Exception e) {
+				e.printStackTrace();
+				if (e instanceof InvocationTargetException)
+					e.getCause().printStackTrace();
 			}
 		}
 	}
@@ -175,7 +123,7 @@ public class TomoListener extends ListenerAdapter {
 	}
 	
 	private static void file(MessageReceivedEvent e) {
-		e.getChannel().sendFile(new File("IMG_7087.jpeg")).queue();
+		e.getChannel().sendFile(new File("static/IMG_7087.jpeg")).queue();
 	}
 	
 	private static void kekw(MessageReceivedEvent e) {

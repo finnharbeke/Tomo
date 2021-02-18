@@ -1,4 +1,4 @@
-package motonari.Commands;
+package Ascii;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,7 +7,7 @@ import java.util.Random;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Graph extends Canvas {
-	public Graph(MessageReceivedEvent e, String[] args) { super(e, args); }
+	public Graph(MessageReceivedEvent e, String[] args) {super(e, args);}
 	public Graph() { super(); }
 	
 	public void init() {
@@ -17,7 +17,7 @@ public class Graph extends Canvas {
 		
 		arg_str = "n m (u v){m}";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
-				cmd, "g", "asciigraph", "drawgraph"
+				cmd, "asciigraph", "drawgraph"
 		}) );
 		
 		options = new HashMap<String, String>();

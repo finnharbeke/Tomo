@@ -1,9 +1,10 @@
-package motonari.Commands;
+package Algorithms;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import motonari.Tomo.Helper;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class ZeroOneKnapsack extends UnboundedKnapsack {
@@ -25,15 +26,7 @@ public class ZeroOneKnapsack extends UnboundedKnapsack {
 		options.put("reaction", "r");
 	}
 	
-	public void run() {
-		String err = super.parse();
-		if (!err.equals("OK")) {
-			Helper.error(c, args[0], err);
-			return;
-		};
-		
-		main();
-		
+	public void answer() {
 		if (myOpts.contains("t"))
 			super.table();
 		
@@ -44,7 +37,6 @@ public class ZeroOneKnapsack extends UnboundedKnapsack {
 			Helper.reactNumber(c, e.getMessageId(), V);
 		else
 			super.sendAnswer();
-			
 	}
 	
 	public void main() {

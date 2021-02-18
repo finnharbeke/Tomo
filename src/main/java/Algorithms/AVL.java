@@ -1,4 +1,4 @@
-package motonari.Commands;
+package Algorithms;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,6 +21,12 @@ public class AVL extends BinaryTree {
 		}) );
 		
 		options = new HashMap<String, String>();
+	}
+
+	@Override
+	public String parse() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override

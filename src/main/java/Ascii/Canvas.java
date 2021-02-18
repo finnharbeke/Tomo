@@ -1,5 +1,6 @@
-package motonari.Commands;
+package Ascii;
 
+import motonari.Commands.Command;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public abstract class Canvas extends Command {
@@ -7,8 +8,8 @@ public abstract class Canvas extends Command {
 	public Canvas() {super();}
 
 	String[] map;
-	final int W = 64;
-	final int H = 25;
+	public final int W = 64;
+	public final int H = 25;
 	
 	public void main() {
 		initMap();

@@ -1,10 +1,12 @@
-package motonari.Commands;
+package Algorithms;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 
+import motonari.Commands.Command;
+import motonari.Tomo.Helper;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class MaxSubarrDiff extends Command {

@@ -1,4 +1,4 @@
-package motonari.Commands;
+package Algorithms;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 
+import motonari.Tomo.Helper;
 import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 

@@ -1,5 +1,6 @@
-package motonari.Commands;
+package Algorithms;
 
+import Ascii.Canvas;
 import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 

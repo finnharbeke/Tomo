@@ -1,5 +1,6 @@
-package motonari.Commands;
+package motonari.Tomo;
 
+import java.io.File;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,9 +8,10 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 
-import motonari.Tomo.Tomo;
+import motonari.Commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Helper {
 	public static void fullEmbed(MessageChannel channel) {
@@ -19,13 +21,13 @@ public class Helper {
 		help.setColor(0xe305e3);
 		help.setDescription("description");
 		help.setFooter("footer", "https://tse2.mm.bing.net/th?id=OIP.akMbDipCNVyOxnlVWdXVPgHaGL&o=6&pid=Api");
-		help.setImage("https://tse1.mm.bing.net/th?id=OIP.wx64GmJDu2nd32eO_tieDgHaEK&o=6&pid=Api");
+		help.setImage("attachment://IMG_7087.jpeg");
 		help.setThumbnail("https://tse4.mm.bing.net/th?id=OIP.dyG9YY1J0V58F-e3hUH8rwHaFj&o=6&pid=Api");
 		help.setTimestamp(Instant.now());
 		help.addField("Field1", "field", false);
 		help.addField("Field2", "field", true);
 		help.addField("Field3", "field", true);
-		channel.sendMessage(help.build()).queue();
+		channel.sendFile(new File("static/IMG_7087.jpeg")).embed(help.build()).queue();
 		help.clear();
 	}
 	
@@ -57,13 +59,14 @@ public class Helper {
 		return "```md\n- " + String.join("\n- ", list) + "\n```";
 	}
 
-	public static void error(MessageChannel c, String cmd, String err) {
+	public static void error(MessageReceivedEvent e, MessageChannel c, String cmd, String err, int deleteDelay) {
+		e.getMessage().addReaction("U+1F534").queue();
 		EmbedBuilder error = new EmbedBuilder();
 		error.setColor(0xfc2003);
 		error.setDescription("**Error:**\t" + err);
 		error.setFooter("type \"" + Tomo.prefix + "help " + cmd + "\" for more info");
 		c.sendMessage(error.build()).queue((m) -> {
-			m.delete().queueAfter(10, TimeUnit.SECONDS);
+			m.delete().queueAfter(deleteDelay, TimeUnit.SECONDS);
 		});
 		error.clear();
 	}

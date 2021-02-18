@@ -1,10 +1,12 @@
-package motonari.Commands;
+package Algorithms;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 
+import motonari.Commands.Command;
+import motonari.Tomo.Helper;
 import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
@@ -210,7 +212,7 @@ public class UnboundedKnapsack extends Command {
 		final int Vi_UPPER_LIM = 30;
 		final int N_LOWER_LIM = 2;
 		final int N_UPPER_LIM = 8;
-		final int W_LOWER_LIM = 0;
+		final int W_LOWER_LIM = 1;
 		final int W_UPPER_LIM = 60;
 		
 		String argStr = cmd;
