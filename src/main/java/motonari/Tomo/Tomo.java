@@ -10,17 +10,18 @@ import java.util.Scanner;
 
 import javax.security.auth.login.LoginException;
 
-import Algorithms.BinarySearchTree;
-import Algorithms.MaxSubarrDiff;
-import Algorithms.UnboundedKnapsack;
-import Algorithms.ZeroOneKnapsack;
-import Ascii.Draw;
-import Ascii.Graph;
-import Ascii.Line;
-import Ascii.Point;
+import motonari.Algorithms.BinarySearchTree;
+import motonari.Algorithms.MaxSubarrDiff;
+import motonari.Algorithms.UnboundedKnapsack;
+import motonari.Algorithms.ZeroOneKnapsack;
+import motonari.Ascii.Draw;
+import motonari.Ascii.Graph;
+import motonari.Ascii.Line;
+import motonari.Ascii.Point;
 import motonari.Commands.Command;
 import motonari.Commands.Example;
 import motonari.Commands.Help;
+import motonari.Grades.Event;
 import motonari.Grades.Guess;
 import motonari.Grades.ProcessStats;
 import net.dv8tion.jda.api.JDA;
@@ -66,6 +67,7 @@ public class Tomo {
 		commands.put(grades, new ArrayList<Class<? extends Command>>());
 		commands.get(grades).add(Guess.class);
 		commands.get(grades).add(ProcessStats.class);
+		commands.get(grades).add(Event.class);
 	}
 	
 	public static Class<? extends Command> random(boolean byAdmin) {

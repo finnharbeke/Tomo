@@ -1,4 +1,4 @@
-package Algorithms;
+package motonari.Algorithms;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package Ascii;
+package motonari.Ascii;
 
 import motonari.Commands.Command;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;

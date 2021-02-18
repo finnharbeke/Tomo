@@ -1,4 +1,4 @@
-package Ascii;
+package motonari.Ascii;
 
 import java.util.Arrays;
 import java.util.HashMap;
