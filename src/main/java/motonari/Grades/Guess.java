@@ -13,7 +13,7 @@ import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
@@ -25,10 +25,10 @@ public class Guess extends Command {
 	public void init() {
 		name = "Guess your Grades";
 		cmd = "gguess";
-		desc = "Guess your Grades of AnD, EProg, DM and LinAlg";
+		desc = "Guess your Grades for current Event in a direct message to me.";
 		
 		
-		arg_str = "((ad | dm | ep | la) <grade>){1,4}";
+		arg_str = "(<subject> <grade>){0,4}";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
 				cmd, "gg", "gradeguess"
 		}) );
@@ -38,19 +38,33 @@ public class Guess extends Command {
 		
 	}
 	
-	Double ad = null;
-	Double dm = null;
-	Double ep = null;
-	Double la = null;
 	int event_id;
+	String[] subs = {null, null, null, null};
+	Double[] grades = {null, null, null, null};
 
 	public void main() {
 		
-		
 		long id = e.getAuthor().getIdLong();
+		
+		Guild eth = Tomo.jda.getGuildById(Grades.Eth_id);
+		
+		Member mem;
 		try {
-			
-			Grades.put(Grades.conn, event_id, id, ad, dm, ep, la, null, null, null, null, "");
+			mem = eth.retrieveMember(e.getAuthor()).complete();
+		}
+		catch (ErrorResponseException err) {
+			err.printStackTrace(); // should not be possible
+			return;
+		}
+		
+		String tags = "";
+		for (Role r : mem.getRoles()) {
+			tags += r.getName() + ";";
+		}
+		tags = tags.substring(0, tags.length()-1);
+		
+		try {
+			Grades.put(Grades.conn, event_id, id, grades[0], grades[1], grades[2], grades[3], null, null, null, null, tags);
 		} catch (SQLException e) {
 			e.printStackTrace(System.err);
 		}
@@ -61,52 +75,66 @@ public class Guess extends Command {
 		
 		long id = e.getAuthor().getIdLong();
 		
-		Double ad_guess, dm_guess, ep_guess, la_guess;
+		Double guess1, guess2, guess3, guess4;
 		
-		User u;
+		String event;
 		try {
 			
-			String sql = "SELECT * FROM grades WHERE id = ?;";
+			String sql = "SELECT * FROM grades WHERE user_id = ? AND event_id = ?;";
 					
 			PreparedStatement pstmt = Grades.conn.prepareStatement(sql);
 			pstmt.setLong(1, id);
+			pstmt.setInt(2, event_id);
 			
 			ResultSet query = pstmt.executeQuery();
 			
 			query.next();
 			
-			u = User.fromId(query.getLong("id"));
-			ad_guess = query.getDouble("ad_guess");
-			dm_guess = query.getDouble("dm_guess");
-			ep_guess = query.getDouble("ep_guess");
-			la_guess = query.getDouble("la_guess");
+			int ev = query.getInt("event_id");
+			guess1 = query.getDouble("guess1");
+			guess2 = query.getDouble("guess2");
+			guess3 = query.getDouble("guess3");
+			guess4 = query.getDouble("guess4");
+			
+			pstmt = Grades.conn.prepareStatement("SELECT name FROM events WHERE id = ?;");
+			pstmt.setInt(1, ev);
+			
+			query = pstmt.executeQuery();
+			
+			query.next();
+			event = query.getString("name");
 			
 		} catch (SQLException e) {
 			e.printStackTrace(System.err);
 			return;
 		}
 		
-		String msg = u.getAsMention() + "Your current grade guesses are: ";
+		String msg = "";
 		String last = "";
-		if (ad_guess != 0.0) {
-			last = "**AnD:** *" + ad_guess + "*";
+		if (guess1 != 0.0) {
+			last = "**" + subs[0] + ":** *" + guess1 + "*";
 		}
-		if (dm_guess != 0.0) {
+		if (guess2 != 0.0) {
 			if (!last.equals(""))
-				msg += last + ", ";
-			last = "**DiskMath:** *" + dm_guess + "*";
+				msg += (msg.equals("") ? "" : ", ") + last;
+			last = "**" + subs[1] + ":** *" + guess2 + "*";
 		}
-		if (ep_guess != 0.0) {
+		if (guess3 != 0.0) {
 			if (!last.equals(""))
-				msg += last + ", ";
-			last = "**EProg:** *" + ep_guess + "*";
+				msg += (msg.equals("") ? "" : ", ") + last;
+			last = "**" + subs[2] + ":** *" + guess3 + "*";
 		}
-		if (la_guess != 0.0) {
+		if (guess4 != 0.0) {
 			if (!last.equals(""))
-				msg += last + ", ";
-			last = "**LinAlg:** *" + la_guess + "*";
+				msg += (msg.equals("") ? "" : ", ") + last;
+			last = "**" + subs[3] + ":** *" + guess4 + "*";
 		}
-		msg += " and " + last + ".";
+		msg += (msg.equals("") ? "" : " and ") + last + ".";
+		
+		if (!msg.equals("."))
+			msg = "Your current grade guesses for **" + event + "** are: " + msg;
+		else
+			msg = "You have no current grade guesses for **" + event + "** yet!";
 		
 		c.sendMessage(msg).queue();
 		
@@ -135,17 +163,25 @@ public class Guess extends Command {
 			return "I'm sorry you need 1. or 2. semester role for using this command!";
 		}
 		
-		HashSet<String> exams = new HashSet<String>(Arrays.asList(Grades.exams));
-		HashSet<String> left = new HashSet<String>(Arrays.asList(Grades.exams));
 		
 		event_id = Grades.currentEvent();
 		if (event_id == -1) {
 			return "No current Guessing event!";
 		}
 		
-		if (args.length < 3) {
-			return "Not enough arguments!";
+		try {
+			ResultSet set = Grades.conn.createStatement().executeQuery("SELECT * FROM events WHERE id = " + event_id + ";");
+			set.next();
+			subs[0] = set.getString("sub1");
+			subs[1] = set.getString("sub2");
+			subs[2] = set.getString("sub3");
+			subs[3] = set.getString("sub4");
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
+		
+		HashSet<String> left = new HashSet<String>(Arrays.asList(subs));
+		HashSet<String> exams = new HashSet<String>(Arrays.asList(subs));
 		
 		int i = 1;
 		while (i < args.length) {
@@ -174,16 +210,11 @@ public class Guess extends Command {
 				return "Your '" + ex + "' grade (" + grade + ") is out of bounds!";
 			}
 			
-			if (ex.equals(Grades.ad)) {
-				ad = grade;
-			} else if (ex.equals(Grades.dm)) {
-				dm = grade;
-			} else if (ex.equals(Grades.ep)) {
-				ep = grade;
-			} else if (ex.equals(Grades.la)) {
-				la = grade;
-			} else {
-				return "Invalid Exam String, should be impossible";
+			for (int j = 0; j < subs.length; j++) {
+				if (ex.equals(subs[j])) {
+					grades[j] = grade;
+					break;
+				}
 			}
 		}
 		

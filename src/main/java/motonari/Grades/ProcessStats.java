@@ -1,5 +1,8 @@
 package motonari.Grades;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,7 +30,7 @@ public class ProcessStats extends Command {
 		desc = "Process a statistics.json from Mark and his Lecturfier.";
 		
 		
-		arg_str = "<append statistics.json>";
+		arg_str = "<event_id> <append statistics.json>";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
 				cmd, "gp", "gradeprocess"
 		}) );
@@ -38,6 +41,9 @@ public class ProcessStats extends Command {
 
 	String file = null;
 	JSONObject EthStatsJson = null;
+	
+	int inserted = 0;
+	int event_id;
 	
 	HashMap<String, HashMap<String, Long>> EthStats;
 
@@ -89,26 +95,85 @@ public class ProcessStats extends Command {
 			}
 			
 		}
+		
+		
+		HashMap<String, HashMap<String, Long>> StatsByUser = new HashMap <String, HashMap<String, Long>>();
+		
+		for (String stat : EthStats.keySet()) {
+			
+			for (String user_id : EthStats.get(stat).keySet()) {
+				
+				if (!StatsByUser.containsKey(user_id)) {
+					
+					StatsByUser.put(user_id, new HashMap<String, Long>());
+					
+				}
+				
+				StatsByUser.get(user_id).put(stat, EthStats.get(stat).get(user_id));
+				
+			}
+			
+		}
+		PreparedStatement pstmt;
+		try {
+			pstmt = Grades.connect().prepareStatement(
+				"INSERT INTO stats(user_id, event_id, messages_sent, "
+				+ "words_sent, msgs_during_lecture, "
+				+ "reactions_added, reactions_received) "
+				+ "VALUES(?, ?, ?, ?, ?, ?, ?);"
+				);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return;
+		}
+		
+		for (String user_id : StatsByUser.keySet()) {
+			
+			try {
+				pstmt.setLong(1, Long.valueOf(user_id));
+				pstmt.setInt(2, event_id);
+				pstmt.setLong(3, StatsByUser.get(user_id).getOrDefault("messages_sent", -1L));
+				pstmt.setLong(4, StatsByUser.get(user_id).getOrDefault("words_sent", -1L));
+				pstmt.setLong(5, StatsByUser.get(user_id).getOrDefault("msgs_during_lecture", -1L));
+				pstmt.setLong(6, StatsByUser.get(user_id).getOrDefault("reactions_added", -1L));
+				pstmt.setLong(7, StatsByUser.get(user_id).getOrDefault("reactions_received", -1L));
+				
+				pstmt.executeUpdate();
+				
+				inserted++;
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}	
+		}
 
 	}
 
 	@Override
 	public void answer() {
-		
-		String msg = "";
-		
-		for (String key : EthStats.keySet()) {
-			msg += key + ": " + EthStats.get(key).getOrDefault(e.getAuthor().getId(), -1L) + "\n";
-		}
-		
-		c.sendMessage(msg).queue();
-		
-		
-		
+		c.sendMessage("Inserted " + inserted + " stats entries for event " + event_id + "!").queue();
 	}
 	
 	
 	public String parse() {
+		if (args.length < 2) {
+			return "Not enough arguments!";
+		} else if (args.length > 2) {
+			return "Too many arguments!";
+		}
+		
+		try {
+			event_id = Integer.valueOf(args[1]);
+			ResultSet set = Grades.connect().createStatement().executeQuery("SELECT * FROM events WHERE id = " + event_id + ";");
+			if (!set.next()) {
+				return "No event with id " + event_id + "!";
+			}
+		} catch (NumberFormatException e) {
+			return "<event_id> must be of Integer format!";
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
 		List<Attachment> l = e.getMessage().getAttachments();
 		
 		if (l.size() < 1) {
@@ -142,7 +207,7 @@ public class ProcessStats extends Command {
 		try {
 			Object obj = parser.parse(file);
 			data = (JSONObject)obj;
-		} catch (ParseException e) {
+		} catch (ParseException | ClassCastException e) {
 			e.printStackTrace();
 			return "Couldn't parse the JSON file!";
 		}
@@ -173,7 +238,6 @@ public class ProcessStats extends Command {
 
 	@Override
 	public String example(String alias) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

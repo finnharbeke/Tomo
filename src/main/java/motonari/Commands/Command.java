@@ -92,6 +92,7 @@ public abstract class Command {
 	
 	public EmbedBuilder help(String alias) {
 		EmbedBuilder help = new EmbedBuilder();
+		help.setColor(Tomo.COLOR);
 		help.setTitle(name);
 		String in = "`" + Tomo.prefix + alias + " " + arg_str;
 		if (!options.isEmpty())
