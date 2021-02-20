@@ -25,6 +25,7 @@ import motonari.Grades.Event;
 import motonari.Grades.Grades;
 import motonari.Grades.Guess;
 import motonari.Grades.ProcessStats;
+import motonari.Grades.Stats;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -70,6 +71,7 @@ public class Tomo {
 		commands.get(grades).add(Guess.class);
 		commands.get(grades).add(ProcessStats.class);
 		commands.get(grades).add(Event.class);
+		commands.get(grades).add(Stats.class);
 	}
 	
 	public static Class<? extends Command> random(boolean byAdmin) {

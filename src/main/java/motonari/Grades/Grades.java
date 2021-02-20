@@ -174,7 +174,7 @@ public class Grades extends Command {
 	static final long sem1_id = 773543051011555398L;
 	static final long sem2_id = 772552854832807938L;
 	
-	static Connection conn = null;
+	private static Connection conn = null;
 	
 	public static Connection connect() throws SQLException {
 		

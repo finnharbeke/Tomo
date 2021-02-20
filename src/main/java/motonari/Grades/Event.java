@@ -58,7 +58,7 @@ public class Event extends Command {
 		
 		if (edit) {
 			try {
-				ResultSet set = Grades.conn.createStatement().executeQuery("SELECT * from events WHERE name = \"" + event_name + "\";");
+				ResultSet set = Grades.connect().createStatement().executeQuery("SELECT * from events WHERE name = \"" + event_name + "\";");
 				if (!set.next())
 					return "No Event called " + event_name + " found!";
 			} catch (SQLException e) {
@@ -107,7 +107,7 @@ public class Event extends Command {
 		if (success) {
 			msg = "Successfully " + (edit ? "edited" : "added" ) + " Event!\n";
 			try {
-				ResultSet set = Grades.conn.createStatement().executeQuery("SELECT * from events WHERE name = \"" + event_name + "\";");
+				ResultSet set = Grades.connect().createStatement().executeQuery("SELECT * from events WHERE name = \"" + event_name + "\";");
 				set.next();
 				msg += set.getString("id") + "; " + set.getString("name") + ": from " + set.getString("start") + " until " + set.getString("end");
 			} catch (SQLException e) {

@@ -64,7 +64,7 @@ public class Guess extends Command {
 		tags = tags.substring(0, tags.length()-1);
 		
 		try {
-			Grades.put(Grades.conn, event_id, id, grades[0], grades[1], grades[2], grades[3], null, null, null, null, tags);
+			Grades.put(Grades.connect(), event_id, id, grades[0], grades[1], grades[2], grades[3], null, null, null, null, tags);
 		} catch (SQLException e) {
 			e.printStackTrace(System.err);
 		}
@@ -82,7 +82,7 @@ public class Guess extends Command {
 			
 			String sql = "SELECT * FROM grades WHERE user_id = ? AND event_id = ?;";
 					
-			PreparedStatement pstmt = Grades.conn.prepareStatement(sql);
+			PreparedStatement pstmt = Grades.connect().prepareStatement(sql);
 			pstmt.setLong(1, id);
 			pstmt.setInt(2, event_id);
 			
@@ -96,7 +96,7 @@ public class Guess extends Command {
 			guess3 = query.getDouble("guess3");
 			guess4 = query.getDouble("guess4");
 			
-			pstmt = Grades.conn.prepareStatement("SELECT name FROM events WHERE id = ?;");
+			pstmt = Grades.connect().prepareStatement("SELECT name FROM events WHERE id = ?;");
 			pstmt.setInt(1, ev);
 			
 			query = pstmt.executeQuery();
@@ -170,7 +170,7 @@ public class Guess extends Command {
 		}
 		
 		try {
-			ResultSet set = Grades.conn.createStatement().executeQuery("SELECT * FROM events WHERE id = " + event_id + ";");
+			ResultSet set = Grades.connect().createStatement().executeQuery("SELECT * FROM events WHERE id = " + event_id + ";");
 			set.next();
 			subs[0] = set.getString("sub1");
 			subs[1] = set.getString("sub2");
