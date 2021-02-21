@@ -24,6 +24,7 @@ import motonari.Commands.Help;
 import motonari.Grades.Event;
 import motonari.Grades.Grades;
 import motonari.Grades.Guess;
+import motonari.Grades.Guessers;
 import motonari.Grades.ProcessStats;
 import motonari.Grades.Stats;
 import net.dv8tion.jda.api.JDA;
@@ -32,7 +33,7 @@ import net.dv8tion.jda.api.entities.Activity;
 
 public class Tomo {
 	public static final String prefix = "&";
-	public static final boolean DEV = false;
+	public static final boolean DEV = true;
 	public static final String dev_pre = "d";
 	
 	public static final int msgLim = 2000;
@@ -72,6 +73,7 @@ public class Tomo {
 		commands.get(grades).add(ProcessStats.class);
 		commands.get(grades).add(Event.class);
 		commands.get(grades).add(Stats.class);
+		commands.get(grades).add(Guessers.class);
 	}
 	
 	public static Class<? extends Command> random(boolean byAdmin) {

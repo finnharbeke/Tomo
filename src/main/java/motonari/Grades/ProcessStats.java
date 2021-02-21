@@ -172,6 +172,7 @@ public class ProcessStats extends Command {
 			return "<event_id> must be of Integer format!";
 		} catch (SQLException e) {
 			e.printStackTrace();
+			return "SQLError!";
 		}
 		
 		List<Attachment> l = e.getMessage().getAttachments();
