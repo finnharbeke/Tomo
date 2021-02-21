@@ -7,8 +7,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import motonari.Commands.Command;
+import motonari.Tomo.Helper;
 import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Stats extends Command {
@@ -22,7 +25,7 @@ public class Stats extends Command {
 		desc = "Returns some stats about the current / given Event.";
 		
 		
-		arg_str = "[event_name]";
+		arg_str = "[<event_name>] [-r<role_id>]";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
 				cmd, "gs", "gradestats",
 		}));
@@ -33,26 +36,52 @@ public class Stats extends Command {
 	
 	Integer event_id = null;
 	String event_name;
+	Long role_id = null;
+	String role_name = null;
 
 	@Override
 	public String parse() {
 		if (args.length > 2) {
 			return "Too many arguments";
-		} else if (args.length == 2) {
+		} else if (args.length >= 2) {
 			event_name = args[1];
-			try {
-				ResultSet set = Grades.connect().createStatement()
-					.executeQuery("SELECT id from events WHERE name = \"" + event_name + "\";");
-				if (!set.next())
-					return "No Event called " + event_name + " found!";
-				else {
-					event_id = set.getInt("id");
+			int i = 1;
+			if (!event_name.startsWith("-r")) {
+				i++;
+				try {
+					ResultSet set = Grades.connect().createStatement()
+						.executeQuery("SELECT id from events WHERE name = \"" + event_name + "\";");
+					if (!set.next())
+						return "No Event called " + event_name + " found!";
+					else {
+						event_id = set.getInt("id");
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+					return "SQLException!";
 				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-				return "SQLException!";
 			}
-		} else {
+			if (args.length >= i + 1) {
+				String role_str = args[i];
+				if (!role_str.startsWith("-r")) {
+					return "Argumnent needs to start with \"-r\"!";
+				}
+				role_str = role_str.substring(2);
+				try {
+					role_id = Long.valueOf(role_str);
+				} catch (NumberFormatException e) {
+					return "<role_id> needs to be integer format!";
+				}
+				
+				Guild eth = Tomo.jda.getGuildById(Grades.Eth_id);
+				Role role = eth.getRoleById(role_id);
+				if (role == null) {
+					return "No such role in the server!";
+				}
+				role_name = role.getName();
+			}
+		}
+		if (event_id == null) {
 			event_id = Grades.currentEvent();
 			if (event_id == -1) {
 				return "No current event!";
@@ -87,8 +116,9 @@ public class Stats extends Command {
 		
 		try {
 			ResultSet set = Grades.connect().createStatement()
-				.executeQuery("SELECT guess1, guess2, guess3, guess4, tags FROM grades WHERE event_id = " + event_id + ";");
-		
+				.executeQuery("SELECT guess1, guess2, guess3, guess4, tags FROM grades WHERE event_id = "
+					+ event_id + (role_id != null ? " AND tags LIKE '%" + role_id + "%'" : "") + ";");
+			
 			while (set.next()) {
 				guessercnt++;
 				double[] guesses = {set.getDouble("guess1"), set.getDouble("guess2"), 
@@ -129,9 +159,14 @@ public class Stats extends Command {
 	@Override
 	public void answer() {
 		
+		if (guessercnt < 5) {
+			Helper.error(e, c, args[0], "I won't return grades stats when querying less than 5 people.", 20);
+			return;
+		}
+		
 		EmbedBuilder embed = new EmbedBuilder();
 		embed.setColor(Tomo.COLOR);
-		embed.setTitle("Guess Stats for **" + event_name + "**");
+		embed.setTitle("Guess Stats for **" + event_name + "**" + (role_name != null ? ": *" + role_name + "*" : ""));
 		
 		embed.setDescription("In total " + guessercnt + " people have guessed.\n");
 		

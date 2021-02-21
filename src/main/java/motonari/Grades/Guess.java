@@ -59,7 +59,7 @@ public class Guess extends Command {
 		
 		String tags = "";
 		for (Role r : mem.getRoles()) {
-			tags += r.getName() + ";";
+			tags += r.getId() + ";";
 		}
 		tags = tags.substring(0, tags.length()-1);
 		
