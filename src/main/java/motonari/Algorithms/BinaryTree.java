@@ -1,7 +1,7 @@
 package motonari.Algorithms;
 
 import motonari.Ascii.Canvas;
-import motonari.Tomo.Tomo;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public abstract class BinaryTree extends Canvas {
@@ -98,10 +98,10 @@ public abstract class BinaryTree extends Canvas {
 		if (totalHeight() <= 5) {
 			super.answer("css");
 		} else {
-			if (long_draw_res.length() < Tomo.msgLim) {				
+			if (long_draw_res.length() < Message.MAX_CONTENT_LENGTH) {				
 				c.sendMessage(long_draw_res).queue();
 			} else {
-				c.sendMessage("Couldn't print Binary Tree, because of the " + Tomo.msgLim + " char Message Limit.").queue();
+				c.sendMessage("Couldn't print Binary Tree, because of the " + Message.MAX_CONTENT_LENGTH + " char Message Limit.").queue();
 			}
 		}
 	}

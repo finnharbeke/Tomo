@@ -7,7 +7,7 @@ import java.util.Random;
 
 import motonari.Commands.Command;
 import motonari.Tomo.Helper;
-import motonari.Tomo.Tomo;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class UnboundedKnapsack extends Command {
@@ -89,16 +89,16 @@ public class UnboundedKnapsack extends Command {
 				t += "|";
 				for (int j = off; j <= W && j < off + TABLE_W; j++) {
 					t += String.format(format, dp[i][j]);
-					if (t.length() > Tomo.msgLim) break;
+					if (t.length() > Message.MAX_CONTENT_LENGTH) break;
 				}
-				if (t.length() > Tomo.msgLim) break;
+				if (t.length() > Message.MAX_CONTENT_LENGTH) break;
 				t += "\n";
 			}
 			t += "\n";
 		}
 		t += "```";
-		if (t.length() > Tomo.msgLim)
-			c.sendMessage("Couldn't print table, because of the " + Tomo.msgLim + " char Message Limit.").queue();
+		if (t.length() > Message.MAX_CONTENT_LENGTH)
+			c.sendMessage("Couldn't print table, because of the " + Message.MAX_CONTENT_LENGTH + " char Message Limit.").queue();
 		else
 			c.sendMessage(t).queue();
 	}

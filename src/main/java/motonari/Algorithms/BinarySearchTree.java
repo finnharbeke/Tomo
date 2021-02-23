@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Random;
 
 import motonari.Tomo.Helper;
-import motonari.Tomo.Tomo;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class BinarySearchTree extends BinaryTree {
@@ -84,10 +84,10 @@ public class BinarySearchTree extends BinaryTree {
 			msg = "**Log:**\n```\n" + String.join("\n", log) + "```";
 		
 		if (!msg.equals("")) {
-			if (msg.length() < Tomo.msgLim)
+			if (msg.length() < Message.MAX_CONTENT_LENGTH)
 				c.sendMessage(msg).queue();
 			else
-				c.sendMessage("Couldn't print Log, because of the " + Tomo.msgLim + " char Message Limit.");
+				c.sendMessage("Couldn't print Log, because of the " + Message.MAX_CONTENT_LENGTH + " char Message Limit.");
 		}
 		
 		super.answer();

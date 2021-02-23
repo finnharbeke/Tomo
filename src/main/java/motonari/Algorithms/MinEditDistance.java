@@ -7,7 +7,7 @@ import java.util.Random;
 
 import motonari.Commands.Command;
 import motonari.Tomo.Helper;
-import motonari.Tomo.Tomo;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class MinEditDistance extends Command {
@@ -197,7 +197,7 @@ public class MinEditDistance extends Command {
 			s += "\n";
 		}
 		s += "```\n";
-		if (s.length() > Tomo.msgLim) {
+		if (s.length() > Message.MAX_CONTENT_LENGTH) {
 			c.sendMessage("Can't print table because of the message size limit.").queue();
 			return false;
 		}

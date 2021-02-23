@@ -35,8 +35,7 @@ public class Tomo {
 	public static final String prefix = "&";
 	public static final boolean DEV = false;
 	public static final String dev_pre = "d";
-	
-	public static final int msgLim = 2000;
+
 	public static final int COLOR = 0xED635D;
 	public static final String SRC = "https://github.com/MoriMotonari/Tomo";
 	public static final String ADMIN = "304014259975880704";
