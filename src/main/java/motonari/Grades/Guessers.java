@@ -72,7 +72,7 @@ public class Guessers extends Command {
 			ResultSet set = Grades.connect().createStatement().executeQuery("SELECT user_id FROM grades WHERE event_id = " + event_id + ";");
 			while (set.next()) {
 				long user_id = set.getLong("user_id");
-				users.add(Tomo.jda.retrieveUserById(user_id).complete());
+				Tomo.jda.retrieveUserById(user_id).queue((u) -> users.add(u));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
