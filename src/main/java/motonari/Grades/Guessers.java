@@ -26,7 +26,7 @@ public class Guessers extends Command {
 		desc = "Sends you participating people";
 		
 		
-		arg_str = "";
+		arg_str = "<event_id>";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
 				cmd, "gradeguessers",
 		}));
