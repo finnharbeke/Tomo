@@ -115,7 +115,7 @@ public class PointsRanking extends Command {
 		ArrayList<EmbedBuilder> embeds = new ArrayList<EmbedBuilder>();
 		embeds.add(new EmbedBuilder());
 		int ei = 0;
-		embeds.get(ei).setTitle("Grade Guess Ranking **" + event_name + "**");
+		embeds.get(ei).setTitle("Grade Guess Ranking **" + event_name + "**" + (role_id == null ? "" : "*" + role_name + "*"));
 		embeds.get(ei).setColor(Tomo.COLOR);
 		
 		int i = 0;
@@ -127,20 +127,18 @@ public class PointsRanking extends Command {
 			if (points.get(i) < last_pts) {
 				place++;
 			}
-			if (place < 3) {
-				switch (place) {
-					case 0:
-						line += ":first_place:";
-						break;
-					case 1:
-						line += ":second_place:";
-						break;
-					case 2:
-						line += ":third_place:";
-						break;
-				}
-			} else {
-				line += ":black_large_square:";
+			switch (place) {
+				case 1:
+					line += ":first_place:";
+					break;
+				case 2:
+					line += ":second_place:";
+					break;
+				case 3:
+					line += ":third_place:";
+					break;
+				default:
+					line += ":black_large_square:";
 			}
 			line += " **" + place + "**. ";
 			line += "<@" + user_ids.get(i) + ">";
@@ -154,10 +152,10 @@ public class PointsRanking extends Command {
 				content = "";
 				embeds.add(new EmbedBuilder());
 				ei++;
-				embeds.get(ei).setTitle("Grade Guess Ranking **" + event_name + "**");
+				embeds.get(ei).setTitle("Grade Guess Ranking **" + event_name + "**" + (role_id == null ? "" : "*" + role_name + "*"));
 				embeds.get(ei).setColor(Tomo.COLOR);
 			}
-			
+			last_pts = points.get(i);
 			i++;
 		}
 		embeds.get(ei).setDescription(content);
