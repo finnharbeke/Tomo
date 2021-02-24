@@ -12,6 +12,7 @@ import javax.security.auth.login.LoginException;
 
 import motonari.Algorithms.BinarySearchTree;
 import motonari.Algorithms.MaxSubarrDiff;
+import motonari.Algorithms.MinEditDistance;
 import motonari.Algorithms.UnboundedKnapsack;
 import motonari.Algorithms.ZeroOneKnapsack;
 import motonari.Ascii.Draw;
@@ -21,20 +22,25 @@ import motonari.Ascii.Point;
 import motonari.Commands.Command;
 import motonari.Commands.Example;
 import motonari.Commands.Help;
+import motonari.Grades.Broadcast;
+import motonari.Grades.Confirm;
 import motonari.Grades.Event;
 import motonari.Grades.Grades;
 import motonari.Grades.Guess;
 import motonari.Grades.Guessers;
+import motonari.Grades.Personal;
+import motonari.Grades.PointsRanking;
 import motonari.Grades.ProcessStats;
 import motonari.Grades.SQL;
 import motonari.Grades.Stats;
+import motonari.Grades.Submit;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 
 public class Tomo {
 	public static final String prefix = "&";
-	public static final boolean DEV = false;
+	public static final boolean DEV = true;
 	public static final String dev_pre = "d";
 
 	public static final int COLOR = 0xED635D;
@@ -58,6 +64,7 @@ public class Tomo {
 		commands.get(algos).add(UnboundedKnapsack.class);
 		commands.get(algos).add(ZeroOneKnapsack.class);
 		commands.get(algos).add(BinarySearchTree.class);
+		commands.get(algos).add(MinEditDistance.class);
 		
 		String ascii = "Ascii";
 		commands.put(ascii, new ArrayList<Class<? extends Command>>());
@@ -75,6 +82,11 @@ public class Tomo {
 		commands.get(grades).add(Stats.class);
 		commands.get(grades).add(Guessers.class);
 		commands.get(grades).add(SQL.class);
+		commands.get(grades).add(Submit.class);
+		commands.get(grades).add(Personal.class);
+		commands.get(grades).add(Confirm.class);
+		commands.get(grades).add(Broadcast.class);
+		commands.get(grades).add(PointsRanking.class);
 	}
 	
 	public static Class<? extends Command> random(boolean byAdmin) {

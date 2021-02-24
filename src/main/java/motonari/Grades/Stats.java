@@ -41,7 +41,7 @@ public class Stats extends Command {
 
 	@Override
 	public String parse() {
-		if (args.length > 2) {
+		if (args.length > 3) {
 			return "Too many arguments";
 		} else if (args.length >= 2) {
 			event_name = args[1];
@@ -64,7 +64,7 @@ public class Stats extends Command {
 			if (args.length >= i + 1) {
 				String role_str = args[i];
 				if (!role_str.startsWith("-r")) {
-					return "Argumnent needs to start with \"-r\"!";
+					return "Argument needs to start with \"-r\"!";
 				}
 				role_str = role_str.substring(2);
 				try {

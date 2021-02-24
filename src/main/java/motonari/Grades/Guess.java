@@ -3,6 +3,7 @@ package motonari.Grades;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,12 +40,11 @@ public class Guess extends Command {
 	}
 	
 	int event_id;
+	long user_id;
 	String[] subs = {null, null, null, null};
 	Double[] grades = {null, null, null, null};
 
 	public void main() {
-		
-		long id = e.getAuthor().getIdLong();
 		
 		Guild eth = Tomo.jda.getGuildById(Grades.Eth_id);
 		
@@ -64,7 +64,39 @@ public class Guess extends Command {
 		tags = tags.substring(0, tags.length()-1);
 		
 		try {
-			Grades.put(Grades.connect(), event_id, id, grades[0], grades[1], grades[2], grades[3], null, null, null, null, tags);
+			String sql = "INSERT INTO grades (event_id, user_id, guess1, guess2, guess3, guess4, tags)" 
+					+ " VALUES( ?, ?, ?, ?, ?, ?, ?)\n"
+					+ "  ON CONFLICT(event_id, user_id) DO UPDATE SET "
+					+ (grades[0] != null ? "guess1 = ?, " : "")
+					+ (grades[1] != null ? "guess2 = ?, " : "")
+					+ (grades[2] != null ? "guess3 = ?, " : "")
+					+ (grades[3] != null ? "guess4 = ?, " : "")
+					+ "tags = ?;";
+			
+			PreparedStatement pstmt = Grades.connect().prepareStatement(sql);
+			pstmt.setInt(1, event_id);
+	        pstmt.setLong(2, user_id);
+	        
+	        setDecimal(pstmt, 3, grades[0]);
+	        setDecimal(pstmt, 4, grades[1]);
+	        setDecimal(pstmt, 5, grades[2]);
+	        setDecimal(pstmt, 6, grades[3]);
+	        pstmt.setString(7, tags);
+	        
+	        int i = 8;
+	        
+	        if (grades[0] != null)
+	        	pstmt.setDouble(i++, grades[0]);
+	        if (grades[1] != null)
+	        	pstmt.setDouble(i++, grades[1]);
+	        if (grades[2] != null)
+	        	pstmt.setDouble(i++, grades[2]);
+	        if (grades[3] != null)
+	        	pstmt.setDouble(i++, grades[3]);
+	        
+	        pstmt.setString(i, tags);
+	        
+	        pstmt.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace(System.err);
 		}
@@ -72,8 +104,6 @@ public class Guess extends Command {
 	}
 
 	public void answer() {
-		
-		long id = e.getAuthor().getIdLong();
 		
 		Double guess1, guess2, guess3, guess4;
 		
@@ -83,7 +113,7 @@ public class Guess extends Command {
 			String sql = "SELECT * FROM grades WHERE user_id = ? AND event_id = ?;";
 					
 			PreparedStatement pstmt = Grades.connect().prepareStatement(sql);
-			pstmt.setLong(1, id);
+			pstmt.setLong(1, user_id);
 			pstmt.setInt(2, event_id);
 			
 			ResultSet query = pstmt.executeQuery();
@@ -141,6 +171,7 @@ public class Guess extends Command {
 	}
 	
 	public String parse() {
+		user_id = e.getAuthor().getIdLong();
 		
 		if (!this.e.isFromType(ChannelType.PRIVATE)) {
 			return "This command can only be used in Private Channels!";
@@ -178,6 +209,7 @@ public class Guess extends Command {
 			subs[3] = set.getString("sub4");
 		} catch (SQLException e) {
 			e.printStackTrace();
+			return "SQLException!";
 		}
 		
 		HashSet<String> left = new HashSet<String>(Arrays.asList(subs));
@@ -232,6 +264,14 @@ public class Guess extends Command {
 	@Override
 	public String example(String alias) {
 		return alias + "dm 6.0";
+	}
+	
+	public static void setDecimal(PreparedStatement pstmt, int ind, Double x) throws SQLException {
+		if (x == null) {
+			pstmt.setNull(ind, Types.DECIMAL);
+		} else {
+			pstmt.setDouble(ind, x);
+		}
 	}
 
 }

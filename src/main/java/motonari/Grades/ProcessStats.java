@@ -32,7 +32,7 @@ public class ProcessStats extends Command {
 		
 		arg_str = "<event_id> <append statistics.json>";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
-				cmd, "gp", "gradeprocess"
+				cmd, "gradeprocess"
 		}) );
 		
 		options = new HashMap<String, String>();

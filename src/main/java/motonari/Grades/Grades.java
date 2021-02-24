@@ -7,7 +7,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -241,62 +240,6 @@ public class Grades extends Command {
 		}
 	}
 	
-	public static void put(Connection conn, int event_id, long id, 
-			Double guess1, Double guess2, Double guess3, Double guess4, 
-			Double grade1, Double grade2, Double grade3, Double grade4, String tags) throws SQLException {
-		
-		String sql = "INSERT INTO grades (event_id, user_id, guess1, guess2, guess3, guess4, "
-				+ "grade1, grade2, grade3, grade4, tags)" 
-				+ " VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n"
-				+ "  ON CONFLICT(event_id, user_id) DO UPDATE SET "
-				+ (guess1 != null ? "guess1 = ?, " : "")
-				+ (guess2 != null ? "guess2 = ?, " : "")
-				+ (guess3 != null ? "guess3 = ?, " : "")
-				+ (guess4 != null ? "guess4 = ?, " : "")
-				+ (grade1 != null ? "grade1 = ?, " : "")
-				+ (grade2 != null ? "grade2 = ?, " : "")
-				+ (grade3 != null ? "grade3 = ?, " : "")
-				+ (grade4 != null ? "grade4 = ?, " : "")
-				+ "tags = ?;";
-		
-		PreparedStatement pstmt = conn.prepareStatement(sql);
-		pstmt.setInt(1, event_id);
-        pstmt.setLong(2, id);
-        
-        setDecimal(pstmt, 3, guess1);
-        setDecimal(pstmt, 4, guess2);
-        setDecimal(pstmt, 5, guess3);
-        setDecimal(pstmt, 6, guess4);
-        setDecimal(pstmt, 7, grade1);
-        setDecimal(pstmt, 8, grade2);
-        setDecimal(pstmt, 9, grade3);
-        setDecimal(pstmt, 10, grade4);
-        pstmt.setString(11, tags);
-        
-        int i = 12;
-        
-        if (guess1 != null)
-        	pstmt.setDouble(i++, guess1);
-        if (guess2 != null)
-        	pstmt.setDouble(i++, guess2);
-        if (guess3 != null)
-        	pstmt.setDouble(i++, guess3);
-        if (guess4 != null)
-        	pstmt.setDouble(i++, guess4);
-        if (grade1 != null)
-        	pstmt.setDouble(i++, grade1);
-        if (grade2 != null)
-        	pstmt.setDouble(i++, grade2);
-        if (grade3 != null)
-        	pstmt.setDouble(i++, grade3);
-        if (grade4 != null)
-        	pstmt.setDouble(i++, grade4);
-        
-        pstmt.setString(i, tags);
-        
-        pstmt.executeUpdate();
-        
-	}
 	
 	public static boolean newEvent(String name, String start, String end, String[] subs) {
 		
@@ -364,15 +307,4 @@ public class Grades extends Command {
 		
 		return event_id;
 	}
-	
-	public static void setDecimal(PreparedStatement pstmt, int ind, Double x) throws SQLException {
-		if (x == null) {
-			pstmt.setNull(ind, Types.DECIMAL);
-		} else {
-			pstmt.setDouble(ind, x);
-		}
-	}
-	
-	
-
 }
