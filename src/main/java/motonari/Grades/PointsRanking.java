@@ -119,11 +119,16 @@ public class PointsRanking extends Command {
 		embeds.get(ei).setColor(Tomo.COLOR);
 		
 		int i = 0;
+		int last_pts = Integer.MAX_VALUE;
+		int place = 0;
 		String content = "";
 		while (i < user_ids.size()) {
 			String line = "";
-			if (i < 3) {
-				switch (i) {
+			if (points.get(i) < last_pts) {
+				place++;
+			}
+			if (place < 3) {
+				switch (place) {
 					case 0:
 						line += ":first_place:";
 						break;
@@ -137,7 +142,7 @@ public class PointsRanking extends Command {
 			} else {
 				line += ":black_large_square:";
 			}
-			line += " **" + (i+1) + "**. ";
+			line += " **" + place + "**. ";
 			line += "<@" + user_ids.get(i) + ">";
 			line += " | ";
 			line += points.get(i) + " pts\n";
@@ -155,6 +160,7 @@ public class PointsRanking extends Command {
 			
 			i++;
 		}
+		embeds.get(ei).setDescription(content);
 		
 		for (EmbedBuilder e : embeds) {
 			c.sendMessage(e.build()).queue();
