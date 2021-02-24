@@ -3,6 +3,7 @@ package motonari.Grades;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,10 +56,11 @@ public class SQL extends Command {
 		return "OK";
 	}
 	
-	String msg;
+	ArrayList<String> msgs;
 
 	@Override
 	public void main() {
+		msgs = new ArrayList<String>();
 		try {
 			Statement stmt = Grades.connect().createStatement();
 			stmt.execute(sql);
@@ -66,34 +68,48 @@ public class SQL extends Command {
 			ResultSet set = stmt.getResultSet();
 			int updatecount = stmt.getUpdateCount();
 			if (set != null) {
-				msg = "```\n";
+				String pre = "```\n";
+				String suf = "```";
+				String msg = pre;
 				while (set.next()) {
 					int i = 1;
+					String row = "";
 					while (true) {
 						try {
-							msg += set.getObject(i) + " | ";
+							row += set.getObject(i) + " | ";
 						} catch (SQLException e) {
 							break;
 						}
 						i++;
 					}
-					msg += "\n";
+					row += "\n";
+					
+					if (msg.length() + row.length() + suf.length() > Message.MAX_CONTENT_LENGTH) {
+						msg += suf;
+						msgs.add(msg);
+						msg = pre + row;
+					} else {
+						msg += row;
+					}
+					
 				}
-				msg += "```";
+				msgs.add(msg + suf);
 			} else if (updatecount != -1) {
-				msg = "Updated " + updatecount + " Rows!";
+				msgs.add("Updated " + updatecount + " Rows!");
 			} else {
-				msg = "No return!";
+				msgs.add("No return!");
 			}
 		} catch (SQLException e) {
-			msg = e.getMessage();
+			msgs.add(e.toString());
 		}
 
 	}
 
 	@Override
 	public void answer() {
-		c.sendMessage(msg).queue();
+		for (String m : msgs) {
+			c.sendMessage(m).queue();
+		}
 
 	}
 

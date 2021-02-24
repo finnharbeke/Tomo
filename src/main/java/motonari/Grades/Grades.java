@@ -223,6 +223,8 @@ public class Grades extends Command {
                 + "	grade3 FLOAT,\n"
                 + "	grade4 FLOAT,\n"
                 + " tags TEXT,\n"
+                + " confirmed INTEGER NON NULL DEFAULT 0,\n"
+                + " points INTEGER,\n"
                 + " PRIMARY KEY (event_id, user_id),\n"
                 + " FOREIGN KEY(event_id) REFERENCES events(id)"
                 + ");";
