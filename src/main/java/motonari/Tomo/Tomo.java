@@ -40,7 +40,7 @@ import net.dv8tion.jda.api.entities.Activity;
 
 public class Tomo {
 	public static final String prefix = "&";
-	public static final boolean DEV = true;
+	public static final boolean DEV = false;
 	public static final String dev_pre = "d";
 
 	public static final int COLOR = 0xED635D;

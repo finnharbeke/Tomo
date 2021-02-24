@@ -11,6 +11,7 @@ import motonari.Commands.Command;
 import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
@@ -111,35 +112,51 @@ public class PointsRanking extends Command {
 			return;
 		}
 		
-		EmbedBuilder embed = new EmbedBuilder();
-		embed.setTitle("Grade Guess Ranking **" + event_name + "**");
-		embed.setColor(Tomo.COLOR);
+		ArrayList<EmbedBuilder> embeds = new ArrayList<EmbedBuilder>();
+		embeds.add(new EmbedBuilder());
+		int ei = 0;
+		embeds.get(ei).setTitle("Grade Guess Ranking **" + event_name + "**");
+		embeds.get(ei).setColor(Tomo.COLOR);
 		
+		int i = 0;
 		String content = "";
-		for (int i = 0; i < user_ids.size(); i++) {
+		while (i < user_ids.size()) {
+			String line = "";
 			if (i < 3) {
 				switch (i) {
 					case 0:
-						content += ":first_place:";
+						line += ":first_place:";
 						break;
 					case 1:
-						content += ":second_place:";
+						line += ":second_place:";
 						break;
 					case 2:
-						content += ":third_place:";
+						line += ":third_place:";
 						break;
 				}
 			} else {
-				content += ":black_large_square:";
+				line += ":black_large_square:";
 			}
-			content += " **" + (i+1) + "**. ";
-			content += "<@" + user_ids.get(i) + ">";
-			content += " | ";
-			content += points.get(i) + " pts\n";
+			line += " **" + (i+1) + "**. ";
+			line += "<@" + user_ids.get(i) + ">";
+			line += " | ";
+			line += points.get(i) + " pts\n";
+			
+			if (content.length() + line.length() < MessageEmbed.TEXT_MAX_LENGTH) {
+				content += line;
+			} else {
+				embeds.get(ei).setDescription(content);
+				content = "";
+				embeds.add(new EmbedBuilder());
+				ei++;
+				embeds.get(ei).setTitle("Grade Guess Ranking **" + event_name + "**");
+				embeds.get(ei).setColor(Tomo.COLOR);
+			}
 		}
 		
-		embed.setDescription(content);
-		c.sendMessage(embed.build()).queue();
+		for (EmbedBuilder e : embeds) {
+			c.sendMessage(e.build()).queue();
+		}
 	}
 
 	@Override
