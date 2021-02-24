@@ -152,6 +152,8 @@ public class PointsRanking extends Command {
 				embeds.get(ei).setTitle("Grade Guess Ranking **" + event_name + "**");
 				embeds.get(ei).setColor(Tomo.COLOR);
 			}
+			
+			i++;
 		}
 		
 		for (EmbedBuilder e : embeds) {
