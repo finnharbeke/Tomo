@@ -152,7 +152,7 @@ public class PointsRanking extends Command {
 				content = "";
 				embeds.add(new EmbedBuilder());
 				ei++;
-				embeds.get(ei).setTitle("Grade Guess Ranking **" + event_name + "**" + (role_id == null ? "" : "*" + role_name + "*"));
+				embeds.get(ei).setTitle("Grade Guess Ranking **" + event_name + "**" + (role_id == null ? "" : " " + role_name));
 				embeds.get(ei).setColor(Tomo.COLOR);
 			}
 			last_pts = points.get(i);
