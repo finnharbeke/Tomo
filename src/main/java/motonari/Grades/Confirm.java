@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import motonari.Commands.Command;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -21,7 +23,7 @@ public class Confirm extends Command {
 		desc = "See your guesses, grades and points for all events. only in my dms";
 		
 		
-		arg_str = "";
+		arg_str = "<name>";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
 				cmd, "gc", "gradeconfirm"
 		}));
@@ -46,10 +48,14 @@ public class Confirm extends Command {
 		event_name = args[1];
 		try {
 			ResultSet set = Grades.connect().createStatement()
-				.executeQuery("SELECT id from events WHERE name = \"" + event_name + "\";");
+				.executeQuery("SELECT * from events WHERE name = \"" + event_name + "\";");
 			if (!set.next())
 				return "No Event called " + event_name + " found!";
 			else {
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+				LocalDateTime end = LocalDateTime.parse(set.getString("end"), formatter);
+				if (LocalDateTime.now().isBefore(end))
+					return "Wait until the Event's Guessing Time has ended.";
 				event_id = set.getInt("id");
 			}
 		} catch (SQLException e) {
@@ -61,7 +67,7 @@ public class Confirm extends Command {
 			ResultSet set = Grades.connect().createStatement()
 				.executeQuery("SELECT confirmed from grades WHERE event_id = " + event_id + " AND user_id = " + e.getAuthor().getIdLong() + ";");
 			if (!set.next())
-				return "You're not participating!";
+				return "You missed participating in Event '" + event_name + "'!";
 			else if (set.getBoolean("confirmed")) {
 				return "Already confirmed!";
 			}

@@ -4,5 +4,5 @@ token.txt
 .project
 .settings/
 .DS_STORE
-Tomo.jar
+*.jar
 *.db

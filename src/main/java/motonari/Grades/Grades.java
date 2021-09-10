@@ -17,7 +17,6 @@ import motonari.Commands.Command;
 import motonari.Tomo.Helper;
 import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Grades extends Command {
@@ -47,93 +46,62 @@ public class Grades extends Command {
 		embed = new EmbedBuilder();
 		embed.setColor(Tomo.COLOR);
 		//embed.setAuthor("the grade guessing game");
+			
+		embed.setTitle("Grade Guessing Info");
 		
-		int event_id = currentEvent();
-		if (event_id != -1) {
-			String ev_name;
-			String end;
-			String[] subs;
-			try {
-				ResultSet set = connect().createStatement().executeQuery("SELECT * FROM events WHERE id = " + event_id + ";");
-				set.next();
-				ev_name = set.getString("name");
-				end = set.getString("end");
-				subs = new String[] {set.getString("sub1"), set.getString("sub2"), set.getString("sub3"), set.getString("sub4")};
-			} catch (SQLException e) {
-				e.printStackTrace();
-				// impossible?
-				return;
-			}
-			
-			embed.setTitle("Current Grade Guessing Event: **" + ev_name + "**");
-			String desc = "Guess until `" + end + "`!\n"
-					+ "Subjects: `" + String.join("`, `", subs) + "`.";
-			embed.setDescription(desc);
-			
-			String footer = this.e.isFromType(ChannelType.PRIVATE) ? "" : "Slide in my DMs and ";
-			
-			footer += "type \"&gg <subject> <grade>\" to start guessing!";
-			
-			embed.setFooter(footer);
-			
-		} else {
-			embed.setTitle("Grades Info");
-			
-			embed.setDescription("Here you see current Guessing Events, "
-					+ "the timespan in which one can guess for them, "
-					+ "if they're closed, active or to be opened and their subjects.");
-			
-			String events = "";
-			
-			try {
-				ResultSet set = conn.createStatement().executeQuery("SELECT * FROM events ORDER BY start DESC;");
-				while (set.next()) {
-					int id = set.getInt("id");
-					String name = set.getString("name");
-					String start = set.getString("start");
-					String end = set.getString("end");
-					String[] subs = {set.getString("sub1"), set.getString("sub2"), set.getString("sub3"), set.getString("sub4")};
-					
-					if (byAdmin()) {
-						events += id + " ";
-					}
-					
-					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-					LocalDateTime stdt = LocalDateTime.parse(start, formatter);
-					LocalDateTime endt = LocalDateTime.parse(end, formatter);
-					
-					events += "`" + start + " - " + end + "` ";
-					if (LocalDateTime.now().isBefore(stdt)) {
-						events += "*" + name + "*: yet to come";
-					} else if (LocalDateTime.now().isAfter(stdt) && LocalDateTime.now().isBefore(endt)) {
-						events +=  "**" + name + "**: active";
-					} else {
-						events += "*" + name + "*: closed";
-					}
-					events += "; " + String.join(", ", subs) + ".\n";
+		embed.setDescription("Here you see all Guessing Events, "
+				+ "the timespan in which one can guess for them, "
+				+ "if they're closed, open or to be opened and their subjects.");
+		
+		String events = "";
+		
+		try {
+			ResultSet set = conn.createStatement().executeQuery("SELECT * FROM events ORDER BY start DESC;");
+			while (set.next()) {
+				int id = set.getInt("id");
+				String name = set.getString("name");
+				String start = set.getString("start");
+				String end = set.getString("end");
+				String[] subs = {set.getString("sub1"), set.getString("sub2"), set.getString("sub3"), set.getString("sub4")};
+				
+				if (byAdmin()) {
+					events += id + " ";
 				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			
-			embed.addField("Events", events, false);
-			
-			String commands = "type `" + Tomo.prefix + "help <cmd>` for more info:\n\n";
-			
-			for (Class<? extends Command> clazz : Tomo.commands.get("Grades")) {
-				try {
-					Command g_cmd = clazz.getConstructor().newInstance();
-					if (!g_cmd.admin)
-						commands += "`" + Tomo.prefix + g_cmd.cmd + "`: " + g_cmd.desc + "\n";
-				} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-						| InvocationTargetException | NoSuchMethodException | SecurityException e) {
-					e.printStackTrace();
+				
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+				LocalDateTime stdt = LocalDateTime.parse(start, formatter);
+				LocalDateTime endt = LocalDateTime.parse(end, formatter);
+				
+				events += "`" + start + " - " + end + "` ";
+				if (LocalDateTime.now().isBefore(stdt)) {
+					events += "*" + name + ":* yet to come";
+				} else if (LocalDateTime.now().isAfter(stdt) && LocalDateTime.now().isBefore(endt)) {
+					events +=  "**" + name + ":** open";
+				} else {
+					events += "*" + name + "*: closed";
 				}
+				events += "; `" + String.join("`, `", subs) + "`.\n";
 			}
-			
-			embed.addField("Commands", commands, false);
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		
+		embed.addField("Events", events, false);
+		
+		String commands = "type `" + Tomo.prefix + "help <cmd>` for more info:\n\n";
+		
+		for (Class<? extends Command> clazz : Tomo.commands.get("Grades")) {
+			try {
+				Command g_cmd = clazz.getConstructor().newInstance();
+				if (!g_cmd.admin)
+					commands += "`" + Tomo.prefix + g_cmd.cmd + "`: " + g_cmd.desc + "\n";
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException | NoSuchMethodException | SecurityException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		embed.addField("Commands", commands, false);
 		
 	}
 
@@ -170,8 +138,6 @@ public class Grades extends Command {
 	static final double max_grade = 6.0;
 	
 	static final long Eth_id = 747752542741725244L;
-	static final long sem1_id = 773543051011555398L;
-	static final long sem2_id = 772552854832807938L;
 	
 	private static Connection conn = null;
 	
@@ -283,27 +249,22 @@ public class Grades extends Command {
 		}
 	}
 	
-	public static int currentEvent() {
+	public static int currentEvent(String name) {
 		int event_id = -1;
 		
-		String sql = "SELECT id FROM events WHERE datetime('now', 'localtime') BETWEEN start AND end;";
+		String sql = "SELECT id, name FROM events WHERE datetime('now', 'localtime') BETWEEN start AND end;";
 		try {
 			Statement stmt = conn.createStatement();
 			ResultSet set = stmt.executeQuery(sql);
 			
-			if (!set.next()) {
-				return -1;
-			}
+			while (set.next() && name != null && !(name.equals(set.getString("name"))));
 			
-			event_id = set.getInt("id");
-			
-			if (set.next()) {
-				System.out.println("Multiple events exist!");
-			}
+			if (!set.isClosed())
+				event_id = set.getInt("id");
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
 		
 		return event_id;
 	}

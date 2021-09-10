@@ -93,7 +93,6 @@ public class Event extends Command {
 	@Override
 	public void main() {
 		if (edit) {
-			System.out.println(String.join(", ", subs));
 			success = Grades.editEvent(event_name, start, end, subs);
 		} else {
 			success = Grades.newEvent(event_name, start, end, subs);

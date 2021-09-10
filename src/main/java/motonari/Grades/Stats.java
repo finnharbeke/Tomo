@@ -25,9 +25,9 @@ public class Stats extends Command {
 		desc = "Returns some stats about the current / given Event.";
 		
 		
-		arg_str = "[<event_name>] [-r<role_id>]";
+		arg_str = "<event_name> [-r<role_id>]";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
-				cmd, "gs", "gradestats",
+				cmd, "gst", "gradestats",
 		}));
 		
 		options = new HashMap<String, String>();
@@ -45,24 +45,20 @@ public class Stats extends Command {
 			return "Too many arguments";
 		} else if (args.length >= 2) {
 			event_name = args[1];
-			int i = 1;
-			if (!event_name.startsWith("-r")) {
-				i++;
-				try {
-					ResultSet set = Grades.connect().createStatement()
-						.executeQuery("SELECT id from events WHERE name = \"" + event_name + "\";");
-					if (!set.next())
-						return "No Event called " + event_name + " found!";
-					else {
-						event_id = set.getInt("id");
-					}
-				} catch (SQLException e) {
-					e.printStackTrace();
-					return "SQLException!";
+			try {
+				ResultSet set = Grades.connect().createStatement()
+					.executeQuery("SELECT id from events WHERE name = \"" + event_name + "\";");
+				if (!set.next())
+					return "No Event called " + event_name + " found!";
+				else {
+					event_id = set.getInt("id");
 				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+				return "SQLException!";
 			}
-			if (args.length >= i + 1) {
-				String role_str = args[i];
+			if (args.length >= 3) {
+				String role_str = args[3];
 				if (!role_str.startsWith("-r")) {
 					return "Argument needs to start with \"-r\"!";
 				}
@@ -81,23 +77,6 @@ public class Stats extends Command {
 				role_name = role.getName();
 			}
 		}
-		if (event_id == null) {
-			event_id = Grades.currentEvent();
-			if (event_id == -1) {
-				return "No current event!";
-			} else {
-				try {
-					ResultSet set = Grades.connect().createStatement()
-						.executeQuery("SELECT name from events WHERE id = " + event_id + ";");
-					set.next();
-					event_name = set.getString("name");
-				} catch (SQLException e) {
-					e.printStackTrace();
-					return "SQLException!";
-				}
-			}
-		}
-		
 		return "OK";
 	}
 	
@@ -160,7 +139,8 @@ public class Stats extends Command {
 	public void answer() {
 		
 		if (guessercnt < 5) {
-			Helper.error(e, c, args[0], "I won't return grades stats when querying less than 5 people.", 20);
+			Helper.error(e, c, args[0], 
+			"Event " + event_name + ": I won't return grades stats when querying less than 5 people.", 20);
 			return;
 		}
 		

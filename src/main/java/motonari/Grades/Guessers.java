@@ -8,9 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import motonari.Commands.Command;
-import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Guessers extends Command {
@@ -63,16 +61,16 @@ public class Guessers extends Command {
 		return "OK";
 	}
 	
-	ArrayList<User> users;
+	ArrayList<Long> users;
 	
 	@Override
 	public void main() {
-		users = new ArrayList<User>();
+		users = new ArrayList<Long>();
 		try {
 			ResultSet set = Grades.connect().createStatement().executeQuery("SELECT user_id FROM grades WHERE event_id = " + event_id + ";");
 			while (set.next()) {
 				long user_id = set.getLong("user_id");
-				Tomo.jda.retrieveUserById(user_id).queue((u) -> users.add(u));
+				users.add(user_id);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -82,9 +80,9 @@ public class Guessers extends Command {
 	@Override
 	public void answer() {
 		
-		String msg = users.size() + " participators:\n";
-		for (User u : users) {
-			msg += ((u == null) ? "null" : u.getAsMention()) + "\n";
+		String msg = users.size() + " participants:\n";
+		for (Long u : users) {
+			msg += ((u == null) ? "null" : "<@" + u + ">") + "\n";
 		}
 		
 		c.sendMessage(msg).queue();

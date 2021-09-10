@@ -25,7 +25,7 @@ public class SQL extends Command {
 		desc = "SQL into grades.db";
 		
 		
-		arg_str = "{reply to ```sql\n<content>\n``` message}";
+		arg_str = "{reply to \\`\\`\\`sql\n<content>\n\\`\\`\\` message}";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
 				cmd, "gradeSQL",
 		}));

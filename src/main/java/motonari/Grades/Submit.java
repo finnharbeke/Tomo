@@ -6,13 +6,14 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import motonari.Commands.Command;
 import motonari.Tomo.Helper;
 import motonari.Tomo.Tomo;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
@@ -24,12 +25,12 @@ public class Submit extends Command {
 	public void init() {
 		name = "Submit your Grades";
 		cmd = "gsubmit";
-		desc = "Guess your Grades for a Event in a direct message to me.";
+		desc = "Submit your actual Grades for an Event in a direct message to me.";
 		
 		
 		arg_str = "<event_name> (<subject> <grade>){0,4}";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
-				cmd, "gradesubmit",
+				cmd, "gs", "gradesubmit",
 		}));
 		
 		options = new HashMap<String, String>();
@@ -51,17 +52,11 @@ public class Submit extends Command {
 		
 		Guild eth = Tomo.jda.getGuildById(Grades.Eth_id);
 		
-		Member mem;
 		try {
-			mem = eth.retrieveMember(e.getAuthor()).complete();
+			eth.retrieveMember(e.getAuthor()).complete();
 		}
 		catch (ErrorResponseException err) {
 			return "I'm sorry you're not in the Guild required for this command!";
-		}
-		
-		if (!(mem.getRoles().contains(eth.getRoleById(Grades.sem1_id)) ||
-			mem.getRoles().contains(eth.getRoleById(Grades.sem2_id)))) {
-			return "I'm sorry you need 1. or 2. semester role for using this command!";
 		}
 		
 		if (args.length < 2) return "Not enough arguments!";
@@ -69,26 +64,20 @@ public class Submit extends Command {
 		event_name = args[1];
 		try {
 			ResultSet set = Grades.connect().createStatement()
-				.executeQuery("SELECT id from events WHERE name = \"" + event_name + "\";");
+				.executeQuery("SELECT * from events WHERE name = \"" + event_name + "\";");
 			if (!set.next())
 				return "No Event called " + event_name + " found!";
 			else {
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+				LocalDateTime end = LocalDateTime.parse(set.getString("end"), formatter);
+				if (LocalDateTime.now().isBefore(end))
+					return "Wait until the Event's Guessing Time has ended.";
 				event_id = set.getInt("id");
+				subs[0] = set.getString("sub1");
+				subs[1] = set.getString("sub2");
+				subs[2] = set.getString("sub3");
+				subs[3] = set.getString("sub4");
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return "SQLException!";
-		}
-		
-		try {
-			ResultSet set = Grades.connect().createStatement().executeQuery(
-				"SELECT * FROM events WHERE id = " + event_id + ";"
-			);
-			set.next();
-			subs[0] = set.getString("sub1");
-			subs[1] = set.getString("sub2");
-			subs[2] = set.getString("sub3");
-			subs[3] = set.getString("sub4");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return "SQLException!";
@@ -124,7 +113,7 @@ public class Submit extends Command {
 			
 			String ex = args[i++];
 			if (!exams.contains(ex)) {
-				return "Invalid Exam Abbreviation!";
+				return "Invalid Exam Abbreviation '" + ex + "'!";
 			} else if (!left.contains(ex)) {
 				return "You're submitting twice for '" + ex + "'!";
 			} else {

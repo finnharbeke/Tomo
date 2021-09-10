@@ -26,10 +26,9 @@ public class Guess extends Command {
 	public void init() {
 		name = "Guess your Grades";
 		cmd = "gguess";
-		desc = "Guess your Grades for current Event in a direct message to me.";
+		desc = "Guess your Grades for an open Event in a direct message to me.";
 		
-		
-		arg_str = "(<subject> <grade>){0,4}";
+		arg_str = "<name> (<subject> <grade>){0,4}";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
 				cmd, "gg", "gradeguess"
 		}) );
@@ -179,25 +178,21 @@ public class Guess extends Command {
 		
 		Guild eth = Tomo.jda.getGuildById(Grades.Eth_id);
 		
-		Member mem;
 		try {
-			mem = eth.retrieveMember(e.getAuthor()).complete();
+			eth.retrieveMember(e.getAuthor()).complete();
 		}
 		catch (ErrorResponseException err) {
 			return "I'm sorry you're not in the Guild required for this command!";
 		}
 		
-		//System.out.println(eth + " " + e.getAuthor() + " " + mem);
+		if (args.length < 2)
+			return "Not enough arguments!";
 		
-		if (!(mem.getRoles().contains(eth.getRoleById(Grades.sem1_id)) ||
-			mem.getRoles().contains(eth.getRoleById(Grades.sem2_id)))) {
-			return "I'm sorry you need 1. or 2. semester role for using this command!";
-		}
+		String name = args[1];
 		
-		
-		event_id = Grades.currentEvent();
+		event_id = Grades.currentEvent(name);
 		if (event_id == -1) {
-			return "No current Guessing event!";
+			return "No currently open Guessing Event called " + name + "!";
 		}
 		
 		try {
@@ -215,7 +210,7 @@ public class Guess extends Command {
 		HashSet<String> left = new HashSet<String>(Arrays.asList(subs));
 		HashSet<String> exams = new HashSet<String>(Arrays.asList(subs));
 		
-		int i = 1;
+		int i = 2;
 		while (i < args.length) {
 			if (args[i].startsWith("-")) {
 				break;
