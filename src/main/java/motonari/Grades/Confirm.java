@@ -20,7 +20,7 @@ public class Confirm extends Command {
 	public void init() {
 		name = "Confirm Grade Submission";
 		cmd = "gconfirm";
-		desc = "See your guesses, grades and points for all events. only in my dms";
+		desc = "Confirm the submitted *actual* grades, this locks them and calculates points, includes you in rankings etc. only in my dms";
 		
 		
 		arg_str = "<name>";
