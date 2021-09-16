@@ -29,6 +29,7 @@ import motonari.Grades.Grades;
 import motonari.Grades.Guess;
 import motonari.Grades.Guessers;
 import motonari.Grades.Personal;
+import motonari.Grades.Plot;
 import motonari.Grades.PointsRanking;
 import motonari.Grades.ProcessStats;
 import motonari.Grades.SQL;
@@ -87,6 +88,7 @@ public class Tomo {
 		commands.get(grades).add(Confirm.class);
 		commands.get(grades).add(Broadcast.class);
 		commands.get(grades).add(PointsRanking.class);
+		commands.get(grades).add(Plot.class);
 	}
 	
 	public static Class<? extends Command> random(boolean byAdmin) {

@@ -6,3 +6,4 @@ token.txt
 .DS_STORE
 *.jar
 *.db
+.vscode/
