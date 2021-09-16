@@ -23,7 +23,7 @@ public class Confirm extends Command {
 		desc = "Confirm the submitted *actual* grades, this locks them and calculates points, includes you in rankings etc. only in my dms";
 		
 		
-		arg_str = "<name>";
+		arg_str = "<event_name>";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
 				cmd, "gc", "gradeconfirm"
 		}));
@@ -124,7 +124,7 @@ public class Confirm extends Command {
 
 	@Override
 	public String example(String alias) {
-		return "BP1";
+		return alias + " BP1";
 	}
 
 }

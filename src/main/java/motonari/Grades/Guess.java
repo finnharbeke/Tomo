@@ -28,7 +28,7 @@ public class Guess extends Command {
 		cmd = "gguess";
 		desc = "Guess your Grades for an open Event in a direct message to me.";
 		
-		arg_str = "<name> (<subject> <grade>){0,4}";
+		arg_str = "<event_name> (<subject> <grade>){0,4}";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
 				cmd, "gg", "gradeguess"
 		}) );

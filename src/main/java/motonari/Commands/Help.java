@@ -65,6 +65,7 @@ public class Help extends Command {
 			embed.setTimestamp(Instant.now());
 			int i = 0;
 			for (String group : Tomo.commands.keySet()) {
+				if (group.equals("Sub")) continue;
 				String content = "";
 				for (Class<? extends Command> clazz : Tomo.commands.get(group)) {
 					try {

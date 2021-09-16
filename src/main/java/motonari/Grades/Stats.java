@@ -22,10 +22,10 @@ public class Stats extends Command {
 	public void init() {
 		name = "Stats about Grade Guessing";
 		cmd = "gstats";
-		desc = "Returns some stats about the current / given Event.";
+		desc = "Returns basic stats about the given Event.";
 		
 		
-		arg_str = "<event_name> [-r<role_id>]";
+		arg_str = "<event_name> [<subject>] [-r<role_id>]";
 		aliases = new HashSet<String>( Arrays.asList(new String[] {
 				cmd, "gst", "gradestats",
 		}));
@@ -38,90 +38,143 @@ public class Stats extends Command {
 	String event_name;
 	Long role_id = null;
 	String role_name = null;
+	Integer subject = null;
 
 	@Override
 	public String parse() {
-		if (args.length > 3) {
+		String[] subs = new String[4];
+		if (args.length > 4) {
 			return "Too many arguments";
-		} else if (args.length >= 2) {
+		} else if (args.length < 2) {	
+			return "Not enough arguments!";
+		} else {
 			event_name = args[1];
 			try {
 				ResultSet set = Grades.connect().createStatement()
-					.executeQuery("SELECT id from events WHERE name = \"" + event_name + "\";");
+					.executeQuery("SELECT * from events WHERE name = \"" + event_name + "\";");
 				if (!set.next())
 					return "No Event called " + event_name + " found!";
 				else {
 					event_id = set.getInt("id");
+					subs[0] = set.getString("sub1");
+					subs[1] = set.getString("sub2");
+					subs[2] = set.getString("sub3");
+					subs[3] = set.getString("sub4");
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 				return "SQLException!";
 			}
 			if (args.length >= 3) {
-				String role_str = args[3];
-				if (!role_str.startsWith("-r")) {
-					return "Argument needs to start with \"-r\"!";
+				int i = 2;
+				String next = args[i];
+				for (int j = 0; j < 4; j++) {
+					if (subs[j].equals(next)) {
+						subject = j;
+					}
 				}
-				role_str = role_str.substring(2);
-				try {
-					role_id = Long.valueOf(role_str);
-				} catch (NumberFormatException e) {
-					return "<role_id> needs to be integer format!";
+				if (subject != null)
+					i++;
+				if (i < args.length) {
+					next = args[i];
+					if (!next.startsWith("-r"))
+						return "Argument '" + next + "' needs to start with \"-r\"!";
+					next = next.substring(2);
+					try {
+						role_id = Long.valueOf(next);
+					} catch (NumberFormatException e) {
+						return "<role_id> needs to be integer format!";
+					}
+					
+					Guild eth = Tomo.jda.getGuildById(Grades.Eth_id);
+					Role role = eth.getRoleById(role_id);
+					if (role == null) {
+						return "No such role in the server!";
+					}
+					role_name = role.getName();
+				} else if (subject == null) {
+					return "Argument '" + next + "' is invalid. Valid are '<subject>' or '-r<role_id>'.";
 				}
-				
-				Guild eth = Tomo.jda.getGuildById(Grades.Eth_id);
-				Role role = eth.getRoleById(role_id);
-				if (role == null) {
-					return "No such role in the server!";
-				}
-				role_name = role.getName();
 			}
 		}
 		return "OK";
 	}
 	
-	double[] subavgs = new double[4];
-	int[] subcnts = new int[4];
-	double totalavg = 0.0;
-	int totalcnt = 0;
-	double avgavg = 0;
-	int guessercnt = 0;
+	double[] means = new double[8];
+	int[] counts = new int[8];
+	double[] stds = new double[8];
+	double guessMean;
+	double gradeMean;
+	int guessCount = 0;
+	int gradeCount = 0;
+	
+	int n;
 	String[] subs;
-	
-	
 
 	@Override
 	public void main() {
 		
 		try {
 			ResultSet set = Grades.connect().createStatement()
-				.executeQuery("SELECT guess1, guess2, guess3, guess4, tags FROM grades WHERE event_id = "
-					+ event_id + (role_id != null ? " AND tags LIKE '%" + role_id + "%'" : "") + ";");
+				.executeQuery("SELECT count(*) as c FROM grades WHERE event_id = "
+				+ event_id + (role_id != null ? " AND tags LIKE '%" + role_id + "%'" : "") + ";"
+			);
 			
-			while (set.next()) {
-				guessercnt++;
-				double[] guesses = {set.getDouble("guess1"), set.getDouble("guess2"), 
-					set.getDouble("guess3"), set.getDouble("guess4")};
+			n = set.getInt("c");
+
+			Double[][] all = new Double[8][n];
+			double[] sums = new double[8];
+			double guessSum = 0;
+			double gradeSum = 0;
+			
+			set = Grades.connect().createStatement()
+				.executeQuery("SELECT * FROM grades WHERE event_id = "
+				+ event_id + (role_id != null ? " AND tags LIKE '%" + role_id + "%'" : "") + ";"
+			);
+
+			for (int i = 0; set.next(); i++) {
+				all[0][i] = set.getDouble("guess1");
+				all[1][i] = set.getDouble("guess2");
+				all[2][i] = set.getDouble("guess3");
+				all[3][i] = set.getDouble("guess4");
+				all[4][i] = set.getDouble("grade1");
+				all[5][i] = set.getDouble("grade2");
+				all[6][i] = set.getDouble("grade3");
+				all[7][i] = set.getDouble("grade4");
 				
-				double avg = 0;
-				int cnt = 0;
-				
-				for (int i = 0; i < guesses.length; i++) {
-					if (guesses[i] != 0.0) {
-						totalcnt++;
-						subcnts[i]++;
-						totalavg += (guesses[i] - totalavg) / totalcnt;
-						subavgs[i] += (guesses[i] - subavgs[i]) / subcnts[i];
-						
-						cnt++;
-						avg += (guesses[i] - avg) / cnt;
+				for (int s = 0; s < 8; s++) {
+					if (all[s][i] != 0.0) {
+						sums[s] += all[s][i];
+						counts[s]++;
+						if (s < 4) {
+							guessCount++;
+							guessSum += all[s][i];
+						} else {
+							gradeCount++;
+							gradeSum += all[s][i];
+						}
 					}
 				}
-				
-				avgavg += (avg - avgavg) / guessercnt;
-				
 			}
-			
+
+			// MEANS
+			guessMean = guessSum / guessCount;
+			gradeMean = gradeSum / gradeCount;
+			for (int s = 0; s < 8; s++) {
+				means[s] = sums[s] / counts[s];
+			}
+			// STANDARD DEVIATION
+			for (int s = 0; s < 8; s++) {
+				double var = 0;
+				for (int i = 0; i < n; i++) {
+					if (all[s][i] == 0.0) continue;
+					double t = means[s] - all[s][i];
+					var += t*t;
+				}
+				var /= counts[s];
+				stds[s] = Math.sqrt(var);
+			}
+			// SUBJECTS
 			set = Grades.connect().createStatement()
 				.executeQuery("SELECT sub1, sub2, sub3, sub4 FROM events WHERE id = " + event_id + ";");
 			
@@ -135,10 +188,32 @@ public class Stats extends Command {
 
 	}
 
+	private void subjectFields(EmbedBuilder embed, int s, boolean sayname) {
+		String content;
+		if (counts[s] == 0)
+			content = "Zero guesses.";
+		else
+			content = "mean: `" + String.format("%.2f", means[s]) + "`\n"
+				+ "std: `" + String.format("%.2f", stds[s]) + "`\n"
+				+ counts[s] + " guesses.";
+		
+		embed.addField("**" + (sayname ? subs[s] + " " : "") + "Guess**", content, true);
+		content = "";
+		if (counts[4+s] == 0)
+			content = "Zero submitted grades.";
+		else
+			content = "mean: `" + String.format("%.2f", means[4+s]) + "`\n"
+				+ "std: `" + String.format("%.2f", stds[4+s]) + "`\n"
+				+ counts[4+s] + " submitted grades.";
+		
+		embed.addBlankField(true);
+		embed.addField("**" + (sayname ? subs[s] + " " : "") + "Grade**", content, true);
+	}
+
 	@Override
 	public void answer() {
 		
-		if (guessercnt < 5) {
+		if (n < 5) {
 			Helper.error(e, c, args[0], 
 			"Event " + event_name + ": I won't return grades stats when querying less than 5 people.", 20);
 			return;
@@ -146,46 +221,31 @@ public class Stats extends Command {
 		
 		EmbedBuilder embed = new EmbedBuilder();
 		embed.setColor(Tomo.COLOR);
-		embed.setTitle("Guess Stats for **" + event_name + "**" + (role_name != null ? ": *" + role_name + "*" : ""));
+		embed.setTitle("Guess Stats for **"
+			+ (subject != null ? subs[subject] + " in " : "")
+			+ event_name + "**"
+			+ (role_name != null ? ": *" + role_name + "*" : "")
+		);
 		
-		embed.setDescription("In total " + guessercnt + " people have guessed.\n");
-		
-		for (int i = 0; i < subs.length; i++) {
-			String content;
-			if (subcnts[i] == 0)
-				content = "No Guesses.";
-			else
-				content = "average guess: `" + String.format("%.2f", subavgs[i]) + "`\n"
-					+ subcnts[i] + " people have guessed.";
-			
-			embed.addField("**" + subs[i] + "**", content, true);
-			if (i % 2 == 1)
-				embed.addBlankField(true);
+		if (subject == null) {
+			embed.setDescription("In total " + n + " people have guessed.\n");
+			for (int s = 0; s < 4; s++)
+				subjectFields(embed, s, true);
+			embed.addField("**All Guesses**", "mean: `" + String.format("%.2f", guessMean) + "`\n"
+				+ guessCount + " total guesses.", true);
+			embed.addField("**All Grades**", "mean: `" + String.format("%.2f", gradeMean) + "`\n"
+				+ gradeCount + " total submitted grades.", true);
+		} else {
+			subjectFields(embed, subject, false);
 		}
-		
-		
-		embed.addField("**Average personal avg**", "`" + String.format("%.2f", avgavg) + "`", true);
-		
-		double subavg = 0;
-		int cnt = 0;
-		for (int i = 0; i < subavgs.length; i++) {
-			if (subcnts[i] == 0)
-				continue;
-			subavg += (subavgs[i] - subavg) / ++cnt;
-		}
-		embed.addField("**Average of subject avgs**", "`" + String.format("%.2f", subavg) + "`", true);
-		embed.addBlankField(true);
-		
-		embed.addField("**Total**", "average guess: `" + String.format("%.2f", totalavg) + "`\n"
-				+ totalcnt + " total guesses", false);
-		
+
 		c.sendMessage(embed.build()).queue();
 		
 	}
 
 	@Override
 	public String example(String alias) {
-		return "";
+		return alias + " BP1";
 	}
 
 }
