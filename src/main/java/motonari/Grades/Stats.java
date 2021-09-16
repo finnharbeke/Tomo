@@ -18,6 +18,8 @@ public class Stats extends Command {
 	public Stats(MessageReceivedEvent e, String[] args) {super(e, args);}
 	public Stats() {super();}
 
+	private static int MIN_N = 5;
+
 	@Override
 	public void init() {
 		name = "Stats about Grade Guessing";
@@ -213,10 +215,12 @@ public class Stats extends Command {
 	@Override
 	public void answer() {
 		
-		if (n < 5) {
+		if (n < MIN_N) {
 			Helper.error(e, c, args[0], 
-			"Event " + event_name + ": I won't return grades stats when querying less than 5 people.", 20);
-			return;
+				"Event " + event_name
+				+ ": I won't return grades stats when querying less than "
+				+ MIN_N + " people.", 20
+			); return;
 		}
 		
 		EmbedBuilder embed = new EmbedBuilder();
