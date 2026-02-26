@@ -7,3 +7,5 @@ token.txt
 *.jar
 *.db
 .vscode/
+contents_from_pi/
+
